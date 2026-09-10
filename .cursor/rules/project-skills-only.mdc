@@ -1,0 +1,11 @@
+---
+description: Skill 只安装在项目内 .cursor/skills，禁止装到用户全局
+alwaysApply: true
+---
+
+# Skill 安装位置
+
+- 本仓库需要的 Agent Skill **只写在** `.cursor/skills/<name>/SKILL.md`。
+- **禁止**安装到 `~/.cursor/skills/` 或其它全局目录。
+- **禁止**写入 `~/.cursor/skills-cursor/`（Cursor 内置保留）。
+- 新增 Skill 须随仓库提交，便于开源协作者共用。

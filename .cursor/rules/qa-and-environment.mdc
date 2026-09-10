@@ -1,0 +1,25 @@
+---
+description: 质检环与环境安装耐心（Docker / Playwright / Lighthouse）
+alwaysApply: true
+---
+
+# 质检与环境
+
+## 质检环（必须）
+
+```text
+开发 → 沙箱 → flutter analyze & test
+     → flutter build web + 静态服务
+     → Playwright 截图 + Lighthouse
+     → defects.json 回流修复 → 达标 → PR
+```
+
+- 沙箱优先本机 Docker（`docker/`）；脚本在 `tooling/qa/`。
+- Flutter Web 使用 CanvasKit 时 DOM 几乎无文本：截图断言用 **title / flutter-view**，勿依赖 `getByText` 点选 Canvas 文字。
+- 门槛见 `docs/QA.md`；缺陷写入 `tooling/qa/artifacts/defects.json`。
+
+## 环境安装
+
+- Flutter / npm / Docker 镜像拉取常因网络极慢。
+- **禁止**因等待过久就杀终端、改方案或换安装路径。
+- 若疑似卡死或失败，**先询问用户**再决断。
