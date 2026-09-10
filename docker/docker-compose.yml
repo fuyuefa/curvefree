@@ -1,0 +1,9 @@
+services:
+  qa:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.qa
+    volumes:
+      - ..:/workspace
+    working_dir: /workspace
+    command: bash -lc "flutter pub get && flutter analyze && flutter test"
