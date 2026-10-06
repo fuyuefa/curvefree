@@ -1,4 +1,5 @@
 import 'package:curvefree/core/constants/app_tokens.dart';
+import 'package:curvefree/features/exercises/pages/exercise_library_page.dart';
 import 'package:curvefree/features/training/models/workout_models.dart';
 import 'package:curvefree/features/training/training_providers.dart';
 import 'package:curvefree/features/training/widgets/workout_list_tile.dart';
@@ -15,7 +16,23 @@ class TrainingLogPage extends ConsumerWidget {
     final asyncSessions = ref.watch(workoutSessionsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text(AppStrings.trainingLogTitle)),
+      appBar: AppBar(
+        title: const Text(AppStrings.trainingLogTitle),
+        actions: [
+          IconButton(
+            key: const Key('btn_open_exercise_library'),
+            tooltip: AppStrings.exerciseLibrary,
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const ExerciseLibraryPage(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.menu_book_outlined),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton.extended(
         key: const Key('btn_start_workout'),
         onPressed: () => _start(context, ref),

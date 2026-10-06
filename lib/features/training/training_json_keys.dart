@@ -9,6 +9,7 @@ abstract final class TrainingJsonKeys {
   static const String weightKg = 'weightKg';
   static const String reps = 'reps';
   static const String completed = 'completed';
+  static const String catalogId = 'catalogId';
 }
 
 abstract final class TrainingIdPrefix {

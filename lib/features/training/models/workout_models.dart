@@ -63,19 +63,22 @@ final class WorkoutExercise {
     required this.id,
     required this.name,
     required this.sets,
+    this.catalogId,
   });
 
   final String id;
   final String name;
+  final String? catalogId;
   final List<WorkoutSet> sets;
 
   double get volumeKg =>
       sets.fold<double>(0, (double sum, WorkoutSet set) => sum + set.volumeKg);
 
-  factory WorkoutExercise.create(String name) {
+  factory WorkoutExercise.create(String name, {String? catalogId}) {
     return WorkoutExercise(
       id: EntityIds.next(TrainingIdPrefix.exercise),
       name: name,
+      catalogId: catalogId,
       sets: <WorkoutSet>[WorkoutSet.create()],
     );
   }
@@ -87,6 +90,7 @@ final class WorkoutExercise {
           json[TrainingJsonKeys.id]?.toString() ??
           EntityIds.next(TrainingIdPrefix.exercise),
       name: json[TrainingJsonKeys.name]?.toString() ?? '',
+      catalogId: json[TrainingJsonKeys.catalogId]?.toString(),
       sets: rawSets is List
           ? rawSets
                 .whereType<Map<Object?, Object?>>()
@@ -107,14 +111,20 @@ final class WorkoutExercise {
     return <String, Object?>{
       TrainingJsonKeys.id: id,
       TrainingJsonKeys.name: name,
+      TrainingJsonKeys.catalogId: catalogId,
       TrainingJsonKeys.sets: sets.map((WorkoutSet s) => s.toJson()).toList(),
     };
   }
 
-  WorkoutExercise copyWith({String? name, List<WorkoutSet>? sets}) {
+  WorkoutExercise copyWith({
+    String? name,
+    String? catalogId,
+    List<WorkoutSet>? sets,
+  }) {
     return WorkoutExercise(
       id: id,
       name: name ?? this.name,
+      catalogId: catalogId ?? this.catalogId,
       sets: sets ?? this.sets,
     );
   }

@@ -1,10 +1,14 @@
 import 'package:curvefree/core/constants/app_tokens.dart';
+import 'package:curvefree/features/exercises/exercise_catalog.dart';
+import 'package:curvefree/features/exercises/models/catalog_exercise.dart';
+import 'package:curvefree/features/exercises/pages/exercise_library_page.dart';
 import 'package:curvefree/features/training/models/workout_models.dart';
 import 'package:curvefree/features/training/training_json_keys.dart';
 import 'package:curvefree/features/training/training_providers.dart';
 import 'package:curvefree/features/training/widgets/numeric_keypad_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lottie/lottie.dart';
 
 class SessionPage extends ConsumerWidget {
   const SessionPage({super.key, required this.sessionId});
@@ -15,8 +19,7 @@ class SessionPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncSessions = ref.watch(workoutSessionsProvider);
     return asyncSessions.when(
-      loading: () =>
-          const Scaffold(body: Center(child: Text('正在读取训练课…'))),
+      loading: () => const Scaffold(body: Center(child: Text('正在读取训练课…'))),
       error: (Object error, StackTrace stack) => Scaffold(
         appBar: AppBar(),
         body: Center(child: Text('读取失败：$error')),
@@ -105,40 +108,18 @@ class _SessionScaffold extends ConsumerWidget {
   }
 
   Future<void> _addExercise(BuildContext context, WidgetRef ref) async {
-    final controller = TextEditingController();
-    final name = await showDialog<String>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text(AppStrings.addExercise),
-          content: TextField(
-            key: const Key('field_exercise_name'),
-            controller: controller,
-            autofocus: true,
-            decoration: const InputDecoration(
-              hintText: AppStrings.exerciseNameHint,
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text(AppStrings.cancel),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, controller.text.trim()),
-              child: const Text(AppStrings.confirm),
-            ),
-          ],
-        );
-      },
+    final picked = await Navigator.of(context).push<CatalogExercise>(
+      MaterialPageRoute<CatalogExercise>(
+        builder: (_) => const ExerciseLibraryPage(pickMode: true),
+      ),
     );
-    controller.dispose();
-    if (name == null || name.isEmpty) {
+    if (picked == null || picked.nameZh.isEmpty) {
       return;
     }
+    final catalogId = picked.id.isEmpty ? null : picked.id;
     final nextExercises = <WorkoutExercise>[
       ...session.exercises,
-      WorkoutExercise.create(name),
+      WorkoutExercise.create(picked.nameZh, catalogId: catalogId),
     ];
     await ref
         .read(workoutSessionsProvider.notifier)
@@ -164,7 +145,26 @@ class _ExerciseCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(exercise.name, style: Theme.of(context).textTheme.titleMedium),
+          Row(
+            children: [
+              if (ExerciseCatalog.byId(exercise.catalogId) != null)
+                SizedBox(
+                  width: 56,
+                  height: 56,
+                  child: Lottie.asset(
+                    ExerciseCatalog.byId(exercise.catalogId)!.lottieAsset,
+                    repeat: true,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              Expanded(
+                child: Text(
+                  exercise.name,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: AppSpacing.xs),
           FutureBuilder<WorkoutSet?>(
             future: ref
