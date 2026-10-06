@@ -1,4 +1,5 @@
 import 'package:curvefree/core/storage/local_store_providers.dart';
+import 'package:curvefree/features/plan/models/training_plan.dart';
 import 'package:curvefree/features/training/data/workout_repository.dart';
 import 'package:curvefree/features/training/models/workout_models.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -28,6 +29,15 @@ final class WorkoutSessionsController
 
   Future<WorkoutSession> startSession() async {
     final session = WorkoutSession.create();
+    await ref.read(workoutRepositoryProvider).upsert(session);
+    await _sync();
+    return session;
+  }
+
+  Future<WorkoutSession> startFromPlan(PlannedSession planned) async {
+    final session = WorkoutSession.create().copyWith(
+      exercises: exercisesFromPlan(planned),
+    );
     await ref.read(workoutRepositoryProvider).upsert(session);
     await _sync();
     return session;
