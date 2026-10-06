@@ -9,8 +9,8 @@ final localStoreProvider = Provider<LocalStore>((Ref ref) {
 
 final localStoreSnapshotProvider =
     AsyncNotifierProvider<LocalStoreController, LocalStoreSnapshot>(
-  LocalStoreController.new,
-);
+      LocalStoreController.new,
+    );
 
 final class LocalStoreController extends AsyncNotifier<LocalStoreSnapshot> {
   @override
@@ -19,7 +19,6 @@ final class LocalStoreController extends AsyncNotifier<LocalStoreSnapshot> {
   }
 
   Future<void> reload() async {
-    state = const AsyncLoading();
     state = await AsyncValue.guard(ref.read(localStoreProvider).read);
   }
 
@@ -28,7 +27,8 @@ final class LocalStoreController extends AsyncNotifier<LocalStoreSnapshot> {
   }
 
   Future<void> putSetting(String key, Object? value) async {
-    final current = state.valueOrNull ?? await ref.read(localStoreProvider).read();
+    final current =
+        state.valueOrNull ?? await ref.read(localStoreProvider).read();
     final nextSettings = Map<String, Object?>.from(current.settings)
       ..[key] = value;
     final next = current.copyWith(settings: nextSettings);

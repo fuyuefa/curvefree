@@ -91,8 +91,7 @@ final class LocalStoreSnapshot {
         .whereType<Map<Object?, Object?>>()
         .map(
           (Map<Object?, Object?> item) => item.map(
-            (Object? key, Object? nested) =>
-                MapEntry(key.toString(), nested),
+            (Object? key, Object? nested) => MapEntry(key.toString(), nested),
           ),
         )
         .toList(growable: false);

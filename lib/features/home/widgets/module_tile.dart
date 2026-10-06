@@ -21,11 +21,11 @@ class ModuleTile extends StatelessWidget {
       color: const Color(AppColors.surface),
       borderRadius: BorderRadius.circular(AppRadii.md),
       child: InkWell(
-        onTap: onTap ??
+        onTap:
+            onTap ??
             () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('$title 模块将在后续合入')),
-              );
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(SnackBar(content: Text('$title 模块将在后续合入')));
             },
         borderRadius: BorderRadius.circular(AppRadii.md),
         child: Padding(
