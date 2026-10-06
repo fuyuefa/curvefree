@@ -24,6 +24,10 @@ void main() {
     expect(find.byKey(const Key('tile_training')), findsOneWidget);
     expect(find.byKey(const Key('tile_nutrition')), findsOneWidget);
     expect(find.byKey(const Key('storage_status_card')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('tile_nutrition')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text(AppStrings.nutritionLogTitle), findsOneWidget);
   });
 
   testWidgets('training tile opens log and can start a session', (
