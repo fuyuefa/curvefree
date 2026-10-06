@@ -1,0 +1,58 @@
+import 'package:curvefree/core/constants/app_tokens.dart';
+import 'package:curvefree/features/training/models/workout_models.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+class WorkoutListTile extends StatelessWidget {
+  const WorkoutListTile({
+    super.key,
+    required this.session,
+    required this.onTap,
+  });
+
+  final WorkoutSession session;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final dateLabel = DateFormat('yyyy-MM-dd HH:mm').format(session.startedAt);
+    final status = session.isFinished ? '已完成' : '进行中';
+    final volume = session.volumeKg.toStringAsFixed(0);
+
+    return Material(
+      color: const Color(AppColors.surface),
+      borderRadius: BorderRadius.circular(AppRadii.md),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadii.md),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      dateLabel,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: AppSpacing.xxs),
+                    Text(
+                      '$status · ${session.completedSetCount} 组 · ${AppStrings.volumeLabel} $volume kg',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right,
+                color: Color(AppColors.textMuted),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

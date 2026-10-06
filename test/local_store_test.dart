@@ -22,9 +22,7 @@ void main() {
       final encoded = original.encodePretty();
       final decodedMap = jsonDecode(encoded) as Map<String, dynamic>;
       final restored = LocalStoreSnapshot.fromJson(
-        decodedMap.map(
-          (String key, dynamic value) => MapEntry(key, value),
-        ),
+        decodedMap.map((String key, dynamic value) => MapEntry(key, value)),
       );
       expect(restored.schemaVersion, StorageSchema.currentVersion);
       expect(restored.settings['locale'], 'zh_CN');
@@ -35,7 +33,9 @@ void main() {
 
   group('FileLocalStore', () {
     test('persists and exports', () async {
-      final directory = await Directory.systemTemp.createTemp('curvefree_store_');
+      final directory = await Directory.systemTemp.createTemp(
+        'curvefree_store_',
+      );
       addTearDown(() async {
         if (await directory.exists()) {
           await directory.delete(recursive: true);
@@ -46,9 +46,7 @@ void main() {
       final first = await store.read();
       expect(first.schemaVersion, StorageSchema.currentVersion);
 
-      final updated = first.copyWith(
-        settings: <String, Object?>{'unit': 'kg'},
-      );
+      final updated = first.copyWith(settings: <String, Object?>{'unit': 'kg'});
       await store.write(updated);
 
       final again = await store.read();
@@ -74,9 +72,11 @@ void main() {
 
       final snapshot = await store.read();
       await store.write(
-        snapshot.copyWith(foodLogs: <Map<String, Object?>>[
-          <String, Object?>{'id': 'f1', 'name': '鸡胸'},
-        ]),
+        snapshot.copyWith(
+          foodLogs: <Map<String, Object?>>[
+            <String, Object?>{'id': 'f1', 'name': '鸡胸'},
+          ],
+        ),
       );
 
       final reloaded = await store.read();
