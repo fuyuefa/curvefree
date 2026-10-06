@@ -50,6 +50,11 @@ abstract final class AppStrings {
   static const String pickExercise = '选择动作';
   static const String searchExerciseHint = '搜索动作、推拉蹲…';
   static const String customExercise = '自定义动作名';
+  static const String trainingPlanTitle = '训练计划';
+  static const String generatePlan = '生成计划';
+  static const String emptyPlan = '还没有计划。选目标与天数后生成，规则公开可改。';
+  static const String daysPerWeek = '每周训练天数';
+  static const String startFromPlan = '按此日开练';
   static const String localData = '本机数据';
   static const String exportBackup = '导出备份';
   static const String importBackup = '从备份恢复';

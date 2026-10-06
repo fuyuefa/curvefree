@@ -1,4 +1,5 @@
 import 'package:curvefree/core/constants/app_tokens.dart';
+import 'package:curvefree/features/plan/pages/plan_page.dart';
 import 'package:curvefree/features/exercises/pages/exercise_library_page.dart';
 import 'package:curvefree/features/training/models/workout_models.dart';
 import 'package:curvefree/features/training/training_providers.dart';
@@ -19,6 +20,16 @@ class TrainingLogPage extends ConsumerWidget {
       appBar: AppBar(
         title: const Text(AppStrings.trainingLogTitle),
         actions: [
+          IconButton(
+            key: const Key('btn_open_plan'),
+            tooltip: AppStrings.trainingPlanTitle,
+            onPressed: () {
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute<void>(builder: (_) => const PlanPage()));
+            },
+            icon: const Icon(Icons.calendar_month_outlined),
+          ),
           IconButton(
             key: const Key('btn_open_exercise_library'),
             tooltip: AppStrings.exerciseLibrary,
