@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <base href="$FLUTTER_BASE_HREF">
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="曲线自由 - 开源本地健身训练与饮食记录工具">
+  <meta name="curvefree-qa" content="boot">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="曲线自由">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <link rel="icon" type="image/png" href="favicon.png"/>
+  <title>曲线自由</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: #0A0A0A;
+      color: #F2F2F2;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    #qa-boot {
+      padding: 24px 16px;
+    }
+    #qa-boot .brand {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    #qa-boot .tag {
+      margin-top: 8px;
+      color: #8A8A8A;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <!-- DOM boot layer: CanvasKit 不暴露 Flutter 文本时，供 Playwright/Lighthouse 锚定 -->
+  <div id="qa-boot" data-qa="curvefree-boot">
+    <div class="brand">曲线自由</div>
+    <div class="tag">本机训练与饮食记录 · 完全开源</div>
+  </div>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

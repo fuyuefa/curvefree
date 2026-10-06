@@ -1,0 +1,19 @@
+{
+  "name": "curvefree-qa",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Playwright + Lighthouse QA for CurveFree Flutter Web preview",
+  "scripts": {
+    "qa": "node run_qa.mjs",
+    "screenshot": "node run_qa.mjs --screenshot-only",
+    "lighthouse": "node run_qa.mjs --lighthouse-only"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "chrome-launcher": "^1.2.0",
+    "lighthouse": "^12.8.2",
+    "playwright": "^1.55.0",
+    "serve-handler": "^6.1.6"
+  }
+}

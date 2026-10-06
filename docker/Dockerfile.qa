@@ -1,0 +1,13 @@
+FROM ghcr.io/cirruslabs/flutter:stable
+
+WORKDIR /workspace
+COPY pubspec.yaml pubspec.lock* analysis_options.yaml ./
+COPY lib ./lib
+COPY test ./test
+COPY web ./web
+COPY android ./android
+COPY tooling ./tooling
+
+RUN flutter pub get
+
+CMD ["bash", "-lc", "flutter analyze && flutter test"]
