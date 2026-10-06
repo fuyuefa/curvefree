@@ -8,7 +8,7 @@
 | Web | Flutter Web | **仅预览与质检**，非产品主入口 |
 | 状态 | flutter_riverpod | 显式依赖注入与测试友好 |
 | 本机存储 | JSON 文档库（path_provider / SharedPreferences） | 无云同步；可整库导出 |
-| 动作动画 | Lottie（后续模块接入） | 开源可许可资源 |
+| 动作动画 | Lottie | 本仓库原创几何循环，见 `docs/CONTENT_ASSETS.md` |
 | 食物数据 | 公开许可数据集 + 中餐补充（后续） | 不进主仓爬虫结果 |
 | 许可 | GPL-3.0 | 允许使用但衍生分发需保持开源 |
 | 质检 | flutter analyze/test + Playwright + Lighthouse | Web 预览路径 |

@@ -45,12 +45,12 @@ void main() {
     expect(find.byKey(const Key('btn_add_exercise')), findsOneWidget);
     await tester.tap(find.byKey(const Key('btn_add_exercise')));
     await tester.pump();
-    await tester.enterText(find.byKey(const Key('field_exercise_name')), '卧推');
-    await tester.tap(find.text(AppStrings.confirm));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.text('杠铃卧推'));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.text('卧推'), findsOneWidget);
+    expect(find.text('杠铃卧推'), findsWidgets);
     expect(find.text(AppStrings.addSet), findsOneWidget);
   });
 }

@@ -29,7 +29,7 @@ abstract final class AppStrings {
   static const String tagline = '本机训练与饮食记录 · 完全开源';
   static const String training = '训练';
   static const String nutrition = '饮食';
-  static const String trainingHint = '记录组数、重量与训练课';
+  static const String trainingHint = '记录组数、重量；动作库可查 Lottie';
   static const String nutritionHint = '记录饮食与营养目标（后续模块）';
   static const String trainingLogTitle = '训练记录';
   static const String startWorkout = '开始训练';
@@ -46,6 +46,10 @@ abstract final class AppStrings {
   static const String lastHintPrefix = '上次';
   static const String confirm = '确定';
   static const String cancel = '取消';
+  static const String exerciseLibrary = '动作库';
+  static const String pickExercise = '选择动作';
+  static const String searchExerciseHint = '搜索动作、推拉蹲…';
+  static const String customExercise = '自定义动作名';
   static const String localData = '本机数据';
   static const String exportBackup = '导出备份';
   static const String importBackup = '从备份恢复';
