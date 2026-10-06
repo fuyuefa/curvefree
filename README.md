@@ -37,6 +37,15 @@ docker compose -f docker/docker-compose.yml run --rm qa
 pwsh tooling/qa/run_qa.ps1
 ```
 
+## 现在能做什么
+
+- 本机训练课记录（重量/次数/容量）
+- 动作库与原创 Lottie 示意循环
+- 按目标/天数/器械生成训练计划
+- 饮食记录、热量蛋白汇总，以及蛋白缺口建议
+
+无社区、商城、跟练、云同步。数据可导出备份。
+
 ## 模块节奏
 
 分模块开发：打磨达标后再 PR 合入 `main`。当前模块见分支命名 `feat/*`。

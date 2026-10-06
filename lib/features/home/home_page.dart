@@ -2,6 +2,7 @@ import 'package:curvefree/core/constants/app_tokens.dart';
 import 'package:curvefree/core/storage/local_store_providers.dart';
 import 'package:curvefree/features/home/widgets/module_tile.dart';
 import 'package:curvefree/features/home/widgets/storage_status_card.dart';
+import 'package:curvefree/features/nutrition/pages/nutrition_page.dart';
 import 'package:curvefree/features/training/pages/training_log_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -71,11 +72,18 @@ class HomePage extends ConsumerWidget {
               },
             ),
             const SizedBox(height: AppSpacing.sm),
-            const ModuleTile(
-              key: Key('tile_nutrition'),
+            ModuleTile(
+              key: const Key('tile_nutrition'),
               title: AppStrings.nutrition,
               subtitle: AppStrings.nutritionHint,
               icon: Icons.restaurant,
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const NutritionPage(),
+                  ),
+                );
+              },
             ),
             const SizedBox(height: AppSpacing.xl),
             Text(

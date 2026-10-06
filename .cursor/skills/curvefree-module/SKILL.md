@@ -10,12 +10,12 @@ description: >-
 
 ## Order of modules
 
-1. foundation / local store (done or extend)
-2. training log
-3. exercise library + Lottie
-4. training plan rules engine
-5. nutrition log + open food data
-6. later: diet plan assist
+1. foundation / local store (done)
+2. training log (done)
+3. exercise library + Lottie (done)
+4. training plan rules engine (done)
+5. nutrition log + open food data (done)
+6. later: richer diet plan if users ask
 
 ## Checklist per module
 

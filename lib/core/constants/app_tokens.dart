@@ -30,7 +30,16 @@ abstract final class AppStrings {
   static const String training = '训练';
   static const String nutrition = '饮食';
   static const String trainingHint = '记录组数、重量；动作库可查 Lottie';
-  static const String nutritionHint = '记录饮食与营养目标（后续模块）';
+  static const String nutritionHint = '记饮食、热量蛋白与缺口建议';
+  static const String nutritionLogTitle = '饮食记录';
+  static const String addFood = '记一笔';
+  static const String pickFood = '选择食物';
+  static const String searchFoodHint = '搜索鸡胸、米饭…';
+  static const String emptyFoodLogs = '今天还没有饮食记录。';
+  static const String gramsLabel = '克';
+  static const String todayMacros = '今日营养';
+  static const String dietAssistTitle = '饮食辅助';
+  static const String dietAssistMet = '蛋白目标已覆盖。';
   static const String trainingLogTitle = '训练记录';
   static const String startWorkout = '开始训练';
   static const String emptyWorkouts = '还没有训练课。点下方开始，当场记组。';
