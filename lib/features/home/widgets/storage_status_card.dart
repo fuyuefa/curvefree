@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:curvefree/core/constants/app_tokens.dart';
 import 'package:flutter/material.dart';
 
@@ -9,6 +11,7 @@ class StorageStatusCard extends StatelessWidget {
     required this.schemaVersion,
     this.errorMessage,
     this.onExport,
+    this.onImport,
   });
 
   final bool ready;
@@ -16,6 +19,7 @@ class StorageStatusCard extends StatelessWidget {
   final int schemaVersion;
   final String? errorMessage;
   final Future<void> Function()? onExport;
+  final Future<void> Function()? onImport;
 
   @override
   Widget build(BuildContext context) {
@@ -61,14 +65,37 @@ class StorageStatusCard extends StatelessWidget {
               style: const TextStyle(color: Color(AppColors.danger)),
             ),
           ],
-          if (onExport != null && ready && errorMessage == null) ...[
+          if (ready &&
+              errorMessage == null &&
+              (onExport != null || onImport != null)) ...[
             const SizedBox(height: AppSpacing.md),
-            OutlinedButton(
-              key: const Key('btn_export_backup'),
-              onPressed: () {
-                onExport?.call();
-              },
-              child: const Text(AppStrings.exportBackup),
+            Wrap(
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.xs,
+              children: [
+                if (onExport != null)
+                  OutlinedButton(
+                    key: const Key('btn_export_backup'),
+                    onPressed: () {
+                      final export = onExport;
+                      if (export != null) {
+                        unawaited(export());
+                      }
+                    },
+                    child: const Text(AppStrings.exportBackup),
+                  ),
+                if (onImport != null)
+                  OutlinedButton(
+                    key: const Key('btn_import_backup'),
+                    onPressed: () {
+                      final restore = onImport;
+                      if (restore != null) {
+                        unawaited(restore());
+                      }
+                    },
+                    child: const Text(AppStrings.importBackup),
+                  ),
+              ],
             ),
           ],
         ],

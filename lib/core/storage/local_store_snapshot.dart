@@ -33,6 +33,21 @@ final class LocalStoreSnapshot {
     );
   }
 
+  factory LocalStoreSnapshot.decode(
+    String rawJson, {
+    String invalidRootMessage = '备份根节点必须是 JSON 对象',
+  }) {
+    final decoded = jsonDecode(rawJson);
+    if (decoded is! Map) {
+      throw FormatException(invalidRootMessage);
+    }
+    return LocalStoreSnapshot.fromJson(
+      decoded.map(
+        (Object? key, Object? value) => MapEntry(key.toString(), value),
+      ),
+    );
+  }
+
   factory LocalStoreSnapshot.fromJson(Map<String, Object?> json) {
     final version = json[StorageKeys.schemaVersion];
     return LocalStoreSnapshot(

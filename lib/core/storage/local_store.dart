@@ -6,6 +6,12 @@ abstract interface class LocalStore {
 
   Future<void> write(LocalStoreSnapshot snapshot);
 
+  /// Read the latest snapshot, apply [transform], and write the result
+  /// before any other queued mutation can observe the old document.
+  Future<LocalStoreSnapshot> mutate(
+    LocalStoreSnapshot Function(LocalStoreSnapshot current) transform,
+  );
+
   /// Replace store contents from an exported JSON document.
   Future<LocalStoreSnapshot> importJson(String rawJson);
 

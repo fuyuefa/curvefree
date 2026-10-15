@@ -119,22 +119,9 @@ class _SessionCard extends StatelessWidget {
   final PlannedSession session;
   final VoidCallback onStart;
 
-  static const List<String> _weekdayLabels = <String>[
-    '',
-    '周一',
-    '周二',
-    '周三',
-    '周四',
-    '周五',
-    '周六',
-    '周日',
-  ];
-
   @override
   Widget build(BuildContext context) {
-    final day = (session.weekday >= 1 && session.weekday <= 7)
-        ? _weekdayLabels[session.weekday]
-        : '';
+    final day = PlanWeekdays.label(session.weekday);
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),

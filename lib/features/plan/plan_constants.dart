@@ -13,6 +13,26 @@ abstract final class PlanJsonKeys {
   static const String reps = 'reps';
 }
 
+abstract final class PlanWeekdays {
+  static const List<String> labels = <String>[
+    '',
+    '周一',
+    '周二',
+    '周三',
+    '周四',
+    '周五',
+    '周六',
+    '周日',
+  ];
+
+  static String label(int weekday) {
+    if (weekday < 1 || weekday >= labels.length) {
+      return '';
+    }
+    return labels[weekday];
+  }
+}
+
 abstract final class PlanLimits {
   static const int minDaysPerWeek = 2;
   static const int maxDaysPerWeek = 6;

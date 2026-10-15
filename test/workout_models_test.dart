@@ -63,4 +63,68 @@ void main() {
     final listed = await repo.listNewestFirst();
     expect(listed.length, 2);
   });
+
+  test('parallel set completions on one session all persist', () async {
+    final directory = await Directory.systemTemp.createTemp('curvefree_sets_');
+    addTearDown(() async {
+      if (await directory.exists()) {
+        await directory.delete(recursive: true);
+      }
+    });
+    final repo = WorkoutRepository(
+      FileLocalStore(overrideDirectory: directory),
+    );
+    const setCount = 8;
+    final session = WorkoutSession.create().copyWith(
+      exercises: <WorkoutExercise>[
+        WorkoutExercise(
+          id: 'e1',
+          name: '卧推',
+          sets: <WorkoutSet>[
+            for (var i = 0; i < setCount; i++)
+              WorkoutSet(id: 's$i', weightKg: 20, reps: 8, completed: false),
+          ],
+        ),
+      ],
+    );
+    await repo.upsert(session);
+
+    await Future.wait(<Future<void>>[
+      for (var i = 0; i < setCount; i++)
+        repo.applySessionEdit(
+          sessionId: session.id,
+          update: (WorkoutSession current) {
+            final exercise = current.exercises.single;
+            return current.copyWith(
+              exercises: <WorkoutExercise>[
+                exercise.copyWith(
+                  sets: exercise.sets
+                      .map((WorkoutSet set) {
+                        if (set.id != 's$i') {
+                          return set;
+                        }
+                        return set.copyWith(
+                          completed: true,
+                          weightKg: 40 + i.toDouble(),
+                        );
+                      })
+                      .toList(growable: false),
+                ),
+              ],
+            );
+          },
+        ),
+    ]);
+
+    final stored = await repo.getById(session.id);
+    final storedSets = stored!.exercises.single.sets;
+    expect(
+      storedSets.where((WorkoutSet set) => set.completed),
+      hasLength(setCount),
+    );
+    for (var i = 0; i < setCount; i++) {
+      final match = storedSets.singleWhere((WorkoutSet set) => set.id == 's$i');
+      expect(match.weightKg, 40 + i);
+    }
+  });
 }
