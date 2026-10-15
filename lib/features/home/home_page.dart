@@ -1,11 +1,12 @@
 import 'package:curvefree/core/constants/app_tokens.dart';
 import 'package:curvefree/core/storage/local_store_providers.dart';
+import 'package:curvefree/features/home/home_backup.dart';
 import 'package:curvefree/features/home/widgets/module_tile.dart';
 import 'package:curvefree/features/home/widgets/storage_status_card.dart';
+import 'package:curvefree/features/home/widgets/today_training_section.dart';
 import 'package:curvefree/features/nutrition/pages/nutrition_page.dart';
 import 'package:curvefree/features/training/pages/training_log_page.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class HomePage extends ConsumerWidget {
@@ -41,7 +42,8 @@ class HomePage extends ConsumerWidget {
                 ready: true,
                 hasUserData: snapshot.hasUserData,
                 schemaVersion: snapshot.schemaVersion,
-                onExport: () => _exportBackup(context, ref),
+                onExport: () => exportLocalBackup(context, ref),
+                onImport: () => restoreLocalBackup(context, ref),
               ),
               loading: () => const StorageStatusCard(
                 ready: false,
@@ -58,6 +60,7 @@ class HomePage extends ConsumerWidget {
             const SizedBox(height: AppSpacing.lg),
             Text('今日', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: AppSpacing.sm),
+            const TodayTrainingSection(),
             ModuleTile(
               key: const Key('tile_training'),
               title: AppStrings.training,
@@ -94,18 +97,5 @@ class HomePage extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  Future<void> _exportBackup(BuildContext context, WidgetRef ref) async {
-    final messenger = ScaffoldMessenger.of(context);
-    try {
-      final json = await ref
-          .read(localStoreSnapshotProvider.notifier)
-          .exportBackup();
-      await Clipboard.setData(ClipboardData(text: json));
-      messenger.showSnackBar(const SnackBar(content: Text('备份 JSON 已复制到剪贴板')));
-    } on Object catch (error) {
-      messenger.showSnackBar(SnackBar(content: Text('导出失败：$error')));
-    }
   }
 }

@@ -26,13 +26,18 @@ final class LocalStoreController extends AsyncNotifier<LocalStoreSnapshot> {
     return ref.read(localStoreProvider).exportJson();
   }
 
+  Future<void> importBackup(String rawJson) async {
+    final snapshot = await ref.read(localStoreProvider).importJson(rawJson);
+    state = AsyncData(snapshot);
+  }
+
   Future<void> putSetting(String key, Object? value) async {
-    final current =
-        state.valueOrNull ?? await ref.read(localStoreProvider).read();
-    final nextSettings = Map<String, Object?>.from(current.settings)
-      ..[key] = value;
-    final next = current.copyWith(settings: nextSettings);
-    await ref.read(localStoreProvider).write(next);
-    state = AsyncData(next);
+    final store = ref.read(localStoreProvider);
+    await store.mutate((LocalStoreSnapshot current) {
+      final nextSettings = Map<String, Object?>.from(current.settings)
+        ..[key] = value;
+      return current.copyWith(settings: nextSettings);
+    });
+    state = AsyncData(await store.read());
   }
 }

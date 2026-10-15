@@ -2,6 +2,7 @@ import 'package:curvefree/core/storage/local_store_providers.dart';
 import 'package:curvefree/features/plan/models/training_plan.dart';
 import 'package:curvefree/features/training/data/workout_repository.dart';
 import 'package:curvefree/features/training/models/workout_models.dart';
+import 'package:curvefree/features/training/set_template.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final workoutRepositoryProvider = Provider<WorkoutRepository>((Ref ref) {
@@ -35,10 +36,16 @@ final class WorkoutSessionsController
   }
 
   Future<WorkoutSession> startFromPlan(PlannedSession planned) async {
-    final session = WorkoutSession.create().copyWith(
-      exercises: exercisesFromPlan(planned),
-    );
-    await ref.read(workoutRepositoryProvider).upsert(session);
+    final repo = ref.read(workoutRepositoryProvider);
+    final seeded = <WorkoutExercise>[];
+    for (final WorkoutExercise exercise in exercisesFromPlan(planned)) {
+      final history = await repo.lastCompletedSet(exerciseName: exercise.name);
+      seeded.add(
+        applyLastCompletedWeight(exercise: exercise, lastCompleted: history),
+      );
+    }
+    final session = WorkoutSession.create().copyWith(exercises: seeded);
+    await repo.upsert(session);
     await _sync();
     return session;
   }
@@ -48,8 +55,20 @@ final class WorkoutSessionsController
     await _sync();
   }
 
-  Future<void> finish(WorkoutSession session) async {
-    await save(session.copyWith(endedAt: DateTime.now()));
+  Future<void> edit(
+    String sessionId,
+    WorkoutSession Function(WorkoutSession current) update,
+  ) async {
+    await ref
+        .read(workoutRepositoryProvider)
+        .applySessionEdit(sessionId: sessionId, update: update);
+    await _sync();
+  }
+
+  Future<void> finish(String sessionId) {
+    return edit(sessionId, (WorkoutSession current) {
+      return current.copyWith(endedAt: DateTime.now());
+    });
   }
 
   Future<void> delete(String id) async {

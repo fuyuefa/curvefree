@@ -16,7 +16,9 @@ class WorkoutListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dateLabel = DateFormat('yyyy-MM-dd HH:mm').format(session.startedAt);
-    final status = session.isFinished ? '已完成' : '进行中';
+    final status = session.isFinished
+        ? AppStrings.workoutFinished
+        : AppStrings.workoutInProgress;
     final volume = session.volumeKg.toStringAsFixed(0);
 
     return Material(

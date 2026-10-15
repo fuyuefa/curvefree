@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:curvefree/core/constants/app_tokens.dart';
 import 'package:curvefree/features/exercises/exercise_catalog.dart';
 import 'package:curvefree/features/exercises/models/catalog_exercise.dart';
 import 'package:curvefree/features/exercises/pages/exercise_library_page.dart';
 import 'package:curvefree/features/training/models/workout_models.dart';
+import 'package:curvefree/features/training/set_template.dart';
 import 'package:curvefree/features/training/training_json_keys.dart';
 import 'package:curvefree/features/training/training_providers.dart';
 import 'package:curvefree/features/training/widgets/numeric_keypad_sheet.dart';
@@ -54,14 +57,18 @@ class _SessionScaffold extends ConsumerWidget {
     final volume = session.volumeKg.toStringAsFixed(0);
     return Scaffold(
       appBar: AppBar(
-        title: Text(session.isFinished ? '训练课' : '进行中'),
+        title: Text(session.isFinished ? '训练课' : AppStrings.workoutInProgress),
         actions: [
           TextButton(
             key: const Key('btn_finish_workout'),
             onPressed: session.isFinished
                 ? null
                 : () {
-                    ref.read(workoutSessionsProvider.notifier).finish(session);
+                    unawaited(
+                      ref
+                          .read(workoutSessionsProvider.notifier)
+                          .finish(session.id),
+                    );
                   },
             child: const Text(AppStrings.finishWorkout),
           ),
@@ -98,7 +105,9 @@ class _SessionScaffold extends ConsumerWidget {
           ],
           OutlinedButton.icon(
             key: const Key('btn_add_exercise'),
-            onPressed: () => _addExercise(context, ref),
+            onPressed: () {
+              unawaited(_addExercise(context, ref));
+            },
             icon: const Icon(Icons.add),
             label: const Text(AppStrings.addExercise),
           ),
@@ -116,14 +125,24 @@ class _SessionScaffold extends ConsumerWidget {
     if (picked == null || picked.nameZh.isEmpty) {
       return;
     }
-    final catalogId = picked.id.isEmpty ? null : picked.id;
-    final nextExercises = <WorkoutExercise>[
-      ...session.exercises,
-      WorkoutExercise.create(picked.nameZh, catalogId: catalogId),
-    ];
-    await ref
-        .read(workoutSessionsProvider.notifier)
-        .save(session.copyWith(exercises: nextExercises));
+    final history = await ref
+        .read(workoutRepositoryProvider)
+        .lastCompletedSet(
+          exerciseName: picked.nameZh,
+          exceptSessionId: session.id,
+        );
+    final created = exerciseSeededFromHistory(
+      name: picked.nameZh,
+      catalogId: picked.id.isEmpty ? null : picked.id,
+      lastCompleted: history,
+    );
+    await ref.read(workoutSessionsProvider.notifier).edit(session.id, (
+      WorkoutSession current,
+    ) {
+      return current.copyWith(
+        exercises: <WorkoutExercise>[...current.exercises, created],
+      );
+    });
   }
 }
 
@@ -207,17 +226,7 @@ class _ExerciseCard extends ConsumerWidget {
             alignment: Alignment.centerLeft,
             child: TextButton(
               onPressed: () {
-                final last = exercise.sets.isEmpty ? null : exercise.sets.last;
-                final nextSet = WorkoutSet.create(
-                  weightKg: last?.weightKg ?? TrainingDefaults.defaultWeightKg,
-                  reps: last?.reps ?? TrainingDefaults.defaultReps,
-                );
-                _replaceExercise(
-                  ref,
-                  exercise.copyWith(
-                    sets: <WorkoutSet>[...exercise.sets, nextSet],
-                  ),
-                );
+                unawaited(_addSet(ref));
               },
               child: const Text(AppStrings.addSet),
             ),
@@ -227,16 +236,32 @@ class _ExerciseCard extends ConsumerWidget {
     );
   }
 
-  Future<void> _replaceExercise(WidgetRef ref, WorkoutExercise nextExercise) {
-    final next = session.exercises
-        .map(
-          (WorkoutExercise item) =>
-              item.id == nextExercise.id ? nextExercise : item,
-        )
-        .toList(growable: false);
-    return ref
-        .read(workoutSessionsProvider.notifier)
-        .save(session.copyWith(exercises: next));
+  Future<void> _addSet(WidgetRef ref) async {
+    final history = await ref
+        .read(workoutRepositoryProvider)
+        .lastCompletedSet(
+          exerciseName: exercise.name,
+          exceptSessionId: session.id,
+        );
+    final exerciseId = exercise.id;
+    await ref.read(workoutSessionsProvider.notifier).edit(session.id, (
+      WorkoutSession current,
+    ) {
+      return current.copyWith(
+        exercises: current.exercises
+            .map((WorkoutExercise item) {
+              if (item.id != exerciseId) {
+                return item;
+              }
+              final next = nextSetTemplate(
+                existingSets: item.sets,
+                lastCompleted: history,
+              );
+              return item.copyWith(sets: <WorkoutSet>[...item.sets, next]);
+            })
+            .toList(growable: false),
+      );
+    });
   }
 }
 
@@ -254,19 +279,27 @@ class _SetRow extends ConsumerWidget {
   final WorkoutSet set;
 
   Future<void> _patch(WidgetRef ref, WorkoutSet nextSet) {
-    final nextSets = exercise.sets
-        .map((WorkoutSet item) => item.id == nextSet.id ? nextSet : item)
-        .toList(growable: false);
-    final nextExercise = exercise.copyWith(sets: nextSets);
-    final next = session.exercises
-        .map(
-          (WorkoutExercise item) =>
-              item.id == nextExercise.id ? nextExercise : item,
-        )
-        .toList(growable: false);
-    return ref
-        .read(workoutSessionsProvider.notifier)
-        .save(session.copyWith(exercises: next));
+    final exerciseId = exercise.id;
+    return ref.read(workoutSessionsProvider.notifier).edit(session.id, (
+      WorkoutSession current,
+    ) {
+      return current.copyWith(
+        exercises: current.exercises
+            .map((WorkoutExercise item) {
+              if (item.id != exerciseId) {
+                return item;
+              }
+              return item.copyWith(
+                sets: item.sets
+                    .map(
+                      (WorkoutSet set) => set.id == nextSet.id ? nextSet : set,
+                    )
+                    .toList(growable: false),
+              );
+            })
+            .toList(growable: false),
+      );
+    });
   }
 
   @override
@@ -318,7 +351,9 @@ class _SetRow extends ConsumerWidget {
             child: Checkbox(
               value: set.completed,
               onChanged: (bool? checked) {
-                _patch(ref, set.copyWith(completed: checked ?? false));
+                unawaited(
+                  _patch(ref, set.copyWith(completed: checked ?? false)),
+                );
               },
             ),
           ),

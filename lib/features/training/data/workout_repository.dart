@@ -30,38 +30,67 @@ final class WorkoutRepository {
   }
 
   Future<void> upsert(WorkoutSession session) async {
-    final snapshot = await _store.read();
-    final next = snapshot.workouts
-        .map((Map<String, Object?> item) => Map<String, Object?>.from(item))
-        .toList(growable: true);
-    final index = next.indexWhere(
-      (Map<String, Object?> item) =>
-          item[TrainingJsonKeys.id]?.toString() == session.id,
-    );
-    final encoded = session.toJson();
-    if (index >= 0) {
-      next[index] = encoded;
-    } else {
-      next.insert(0, encoded);
-    }
-    await _store.write(snapshot.copyWith(workouts: next));
+    await _store.mutate((snapshot) {
+      final next = snapshot.workouts
+          .map((Map<String, Object?> item) => Map<String, Object?>.from(item))
+          .toList(growable: true);
+      final index = next.indexWhere(
+        (Map<String, Object?> item) =>
+            item[TrainingJsonKeys.id]?.toString() == session.id,
+      );
+      final encoded = session.toJson();
+      if (index >= 0) {
+        next[index] = encoded;
+      } else {
+        next.insert(0, encoded);
+      }
+      return snapshot.copyWith(workouts: next);
+    });
+  }
+
+  /// Applies [update] to the session currently on disk.
+  ///
+  /// Set completions must not rebuild the document from a widget snapshot
+  /// captured before the previous write finished.
+  Future<void> applySessionEdit({
+    required String sessionId,
+    required WorkoutSession Function(WorkoutSession current) update,
+  }) async {
+    await _store.mutate((snapshot) {
+      final sessions = snapshot.workouts
+          .map(WorkoutSession.fromJson)
+          .toList(growable: true);
+      final index = sessions.indexWhere(
+        (WorkoutSession item) => item.id == sessionId,
+      );
+      if (index < 0) {
+        throw StateError('训练课不存在');
+      }
+      sessions[index] = update(sessions[index]);
+      return snapshot.copyWith(
+        workouts: sessions
+            .map((WorkoutSession item) => item.toJson())
+            .toList(growable: false),
+      );
+    });
   }
 
   Future<void> delete(String id) async {
-    final snapshot = await _store.read();
-    final next = snapshot.workouts
-        .where(
-          (Map<String, Object?> item) =>
-              item[TrainingJsonKeys.id]?.toString() != id,
-        )
-        .toList(growable: false);
-    await _store.write(snapshot.copyWith(workouts: next));
+    await _store.mutate((snapshot) {
+      final next = snapshot.workouts
+          .where(
+            (Map<String, Object?> item) =>
+                item[TrainingJsonKeys.id]?.toString() != id,
+          )
+          .toList(growable: false);
+      return snapshot.copyWith(workouts: next);
+    });
   }
 
   /// Latest completed set for [exerciseName] in sessions other than [exceptSessionId].
   Future<WorkoutSet?> lastCompletedSet({
     required String exerciseName,
-    required String exceptSessionId,
+    String? exceptSessionId,
   }) async {
     final needle = exerciseName.trim();
     if (needle.isEmpty) {
@@ -69,7 +98,7 @@ final class WorkoutRepository {
     }
     final sessions = await listNewestFirst();
     for (final WorkoutSession session in sessions) {
-      if (session.id == exceptSessionId) {
+      if (exceptSessionId != null && session.id == exceptSessionId) {
         continue;
       }
       for (final WorkoutExercise exercise in session.exercises) {

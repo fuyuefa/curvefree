@@ -18,20 +18,23 @@ final class FoodLogRepository {
   }
 
   Future<void> add(FoodLogEntry entry) async {
-    final snapshot = await _store.read();
-    final next = <Map<String, Object?>>[entry.toJson(), ...snapshot.foodLogs];
-    await _store.write(snapshot.copyWith(foodLogs: next));
+    await _store.mutate((snapshot) {
+      return snapshot.copyWith(
+        foodLogs: <Map<String, Object?>>[entry.toJson(), ...snapshot.foodLogs],
+      );
+    });
   }
 
   Future<void> delete(String id) async {
-    final snapshot = await _store.read();
-    final next = snapshot.foodLogs
-        .where(
-          (Map<String, Object?> item) =>
-              item[NutritionJsonKeys.id]?.toString() != id,
-        )
-        .toList(growable: false);
-    await _store.write(snapshot.copyWith(foodLogs: next));
+    await _store.mutate((snapshot) {
+      final next = snapshot.foodLogs
+          .where(
+            (Map<String, Object?> item) =>
+                item[NutritionJsonKeys.id]?.toString() != id,
+          )
+          .toList(growable: false);
+      return snapshot.copyWith(foodLogs: next);
+    });
   }
 
   FoodLogEntry create({
