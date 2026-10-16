@@ -77,6 +77,17 @@ final class FoodLogEntry {
       NutritionJsonKeys.meal: meal,
     };
   }
+
+  FoodLogEntry copyWith({double? grams, String? meal}) {
+    return FoodLogEntry(
+      id: id,
+      loggedAt: loggedAt,
+      foodId: foodId,
+      nameZh: nameZh,
+      grams: grams ?? this.grams,
+      meal: meal ?? this.meal,
+    );
+  }
 }
 
 final class MacroTotals {

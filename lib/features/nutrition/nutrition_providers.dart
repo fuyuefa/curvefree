@@ -34,6 +34,11 @@ final class FoodLogsController extends AsyncNotifier<List<FoodLogEntry>> {
     await _sync();
   }
 
+  Future<void> replace(FoodLogEntry entry) async {
+    await ref.read(foodLogRepositoryProvider).update(entry);
+    await _sync();
+  }
+
   Future<void> delete(String id) async {
     await ref.read(foodLogRepositoryProvider).delete(id);
     await _sync();

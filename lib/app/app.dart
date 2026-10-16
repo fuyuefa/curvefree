@@ -1,5 +1,5 @@
-import 'package:curvefree/app/shell/app_shell.dart';
 import 'package:curvefree/app/theme/theme_mode.dart';
+import 'package:curvefree/features/onboarding/onboarding_gate.dart';
 import 'package:curvefree/core/backup/backup_file_gateway.dart';
 import 'package:curvefree/core/backup/backup_file_gateway_factory.dart';
 import 'package:curvefree/core/constants/app_tokens.dart';
@@ -12,13 +12,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'theme/app_theme.dart';
 
 class CurveFreeApp extends StatelessWidget {
-  const CurveFreeApp({super.key, this.localStore, this.backupGateway});
+  const CurveFreeApp({
+    super.key,
+    this.localStore,
+    this.backupGateway,
+    this.skipOnboarding = false,
+  });
 
   /// When set, used instead of the platform default store (tests).
   final LocalStore? localStore;
 
   /// When set, used instead of the platform share/save sheet (tests).
   final BackupFileGateway? backupGateway;
+
+  /// Shell tests pass true. A normal launch leaves this false.
+  final bool skipOnboarding;
 
   @override
   Widget build(BuildContext context) {
@@ -29,13 +37,15 @@ class CurveFreeApp extends StatelessWidget {
         if (backupGateway != null)
           backupFileGatewayProvider.overrideWithValue(backupGateway!),
       ],
-      child: const _CurveFreeRoot(),
+      child: _CurveFreeRoot(skipOnboarding: skipOnboarding),
     );
   }
 }
 
 class _CurveFreeRoot extends ConsumerWidget {
-  const _CurveFreeRoot();
+  const _CurveFreeRoot({required this.skipOnboarding});
+
+  final bool skipOnboarding;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -53,7 +63,7 @@ class _CurveFreeRoot extends ConsumerWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      home: const AppShell(),
+      home: OnboardingGate(skipOnboarding: skipOnboarding),
     );
   }
 }

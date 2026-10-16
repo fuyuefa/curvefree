@@ -22,7 +22,9 @@ void main() {
   testWidgets('today tab shows progress, muscles, and bottom nav', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(CurveFreeApp(localStore: await testStore()));
+    await tester.pumpWidget(
+      CurveFreeApp(localStore: await testStore(), skipOnboarding: true),
+    );
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
@@ -53,13 +55,16 @@ void main() {
     await tester.tap(find.byKey(const Key('nav_nutrition')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
-    expect(find.text(AppStrings.nutritionLogTitle), findsOneWidget);
+    expect(find.byKey(const Key('nutri_title')), findsOneWidget);
+    expect(find.text('早餐'), findsOneWidget);
   });
 
   testWidgets('training tab opens log and can start a session', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(CurveFreeApp(localStore: await testStore()));
+    await tester.pumpWidget(
+      CurveFreeApp(localStore: await testStore(), skipOnboarding: true),
+    );
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 200));
 
@@ -98,7 +103,9 @@ void main() {
     expect(decoration.color, CurvePalette.light.successSoft);
   });
 
-  testWidgets('today and session fit a phone width', (WidgetTester tester) async {
+  testWidgets('today and session fit a phone width', (
+    WidgetTester tester,
+  ) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);

@@ -1,8 +1,13 @@
 import 'package:curvefree/app/theme/curve_colors.dart';
+import 'package:curvefree/app/theme/curve_surfaces.dart';
 import 'package:curvefree/app/theme/theme_mode.dart';
 import 'package:curvefree/core/constants/app_tokens.dart';
 import 'package:curvefree/core/storage/local_store_providers.dart';
 import 'package:curvefree/core/storage/local_store_snapshot.dart';
+import 'package:curvefree/features/cycle/cycle_constants.dart';
+import 'package:curvefree/features/cycle/cycle_providers.dart';
+import 'package:curvefree/features/cycle/models/cycle_profile.dart';
+import 'package:curvefree/features/cycle/pages/cycle_page.dart';
 import 'package:curvefree/features/home/home_backup.dart';
 import 'package:curvefree/features/home/widgets/storage_status_card.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +19,7 @@ class MePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeMode mode = ref.watch(themeModeProvider);
+    final CycleProfile cycle = ref.watch(cycleProfileProvider);
     final AsyncValue<LocalStoreSnapshot> asyncStore = ref.watch(
       localStoreSnapshotProvider,
     );
@@ -72,6 +78,15 @@ class MePage extends ConsumerWidget {
                   onSelected: () => _setMode(ref, ThemeMode.dark),
                 ),
               ],
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            _CycleEntry(
+              subtitle: cycle.meSubtitle,
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(builder: (_) => const CyclePage()),
+                );
+              },
             ),
             const SizedBox(height: AppSpacing.lg),
             asyncStore.when(
@@ -141,6 +156,54 @@ class _ThemeChip extends StatelessWidget {
       side: BorderSide(color: selected ? colors.primary : colors.border),
       shape: const StadiumBorder(),
       onSelected: (bool _) => onSelected(),
+    );
+  }
+}
+
+class _CycleEntry extends StatelessWidget {
+  const _CycleEntry({required this.subtitle, required this.onTap});
+
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final CurveColors colors = CurveColors.of(context);
+    return Material(
+      color: colors.card,
+      borderRadius: BorderRadius.circular(AppRadii.card),
+      child: InkWell(
+        key: const Key('me_cycle_entry'),
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadii.card),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: curveSurfaceDecoration(colors),
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      CycleCopy.title,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: AppSpacing.xxs),
+                    Text(
+                      subtitle,
+                      key: const Key('me_cycle_subtitle'),
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right, color: colors.textTertiary),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
