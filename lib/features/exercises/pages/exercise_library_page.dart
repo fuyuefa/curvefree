@@ -1,3 +1,4 @@
+import 'package:curvefree/app/theme/curve_colors.dart';
 import 'package:curvefree/core/constants/app_tokens.dart';
 import 'package:curvefree/features/exercises/exercise_catalog.dart';
 import 'package:curvefree/features/exercises/models/catalog_exercise.dart';
@@ -40,9 +41,6 @@ class _ExerciseLibraryPageState extends State<ExerciseLibraryPage> {
               key: const Key('field_exercise_search'),
               decoration: const InputDecoration(
                 hintText: AppStrings.searchExerciseHint,
-                filled: true,
-                fillColor: Color(AppColors.surface),
-                border: InputBorder.none,
               ),
               onChanged: (String value) => setState(() => _query = value),
             ),
@@ -138,12 +136,17 @@ class _ExerciseTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final CurveColors colors = CurveColors.of(context);
+    final RoundedRectangleBorder shape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(AppRadii.card),
+      side: BorderSide(color: colors.border),
+    );
     return Material(
-      color: const Color(AppColors.surface),
-      borderRadius: BorderRadius.circular(AppRadii.md),
+      color: colors.card,
+      shape: shape,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadii.md),
+        customBorder: shape,
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.sm),
           child: Row(

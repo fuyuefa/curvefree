@@ -1,14 +1,16 @@
 import 'dart:async';
 
+import 'package:curvefree/app/theme/curve_colors.dart';
+import 'package:curvefree/app/theme/curve_surfaces.dart';
 import 'package:curvefree/core/constants/app_tokens.dart';
 import 'package:curvefree/features/exercises/exercise_catalog.dart';
 import 'package:curvefree/features/exercises/models/catalog_exercise.dart';
 import 'package:curvefree/features/exercises/pages/exercise_library_page.dart';
 import 'package:curvefree/features/training/models/workout_models.dart';
 import 'package:curvefree/features/training/set_template.dart';
-import 'package:curvefree/features/training/training_json_keys.dart';
 import 'package:curvefree/features/training/training_providers.dart';
-import 'package:curvefree/features/training/widgets/numeric_keypad_sheet.dart';
+import 'package:curvefree/features/training/widgets/session_set_row.dart';
+import 'package:curvefree/features/training/widgets/session_summary_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lottie/lottie.dart';
@@ -20,7 +22,9 @@ class SessionPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final asyncSessions = ref.watch(workoutSessionsProvider);
+    final AsyncValue<List<WorkoutSession>> asyncSessions = ref.watch(
+      workoutSessionsProvider,
+    );
     return asyncSessions.when(
       loading: () => const Scaffold(body: Center(child: Text('正在读取训练课…'))),
       error: (Object error, StackTrace stack) => Scaffold(
@@ -54,24 +58,14 @@ class _SessionScaffold extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final volume = session.volumeKg.toStringAsFixed(0);
     return Scaffold(
       appBar: AppBar(
-        title: Text(session.isFinished ? '训练课' : AppStrings.workoutInProgress),
-        actions: [
-          TextButton(
-            key: const Key('btn_finish_workout'),
-            onPressed: session.isFinished
-                ? null
-                : () {
-                    unawaited(
-                      ref
-                          .read(workoutSessionsProvider.notifier)
-                          .finish(session.id),
-                    );
-                  },
-            child: const Text(AppStrings.finishWorkout),
-          ),
+        title: Text(
+          session.isFinished
+              ? AppStrings.workoutFinished
+              : AppStrings.workoutInProgress,
+        ),
+        actions: <Widget>[
           IconButton(
             tooltip: AppStrings.deleteWorkout,
             onPressed: () async {
@@ -86,52 +80,90 @@ class _SessionScaffold extends ConsumerWidget {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.md,
-          AppSpacing.sm,
-          AppSpacing.md,
-          AppSpacing.xl,
-        ),
-        children: [
-          Text(
-            '${AppStrings.volumeLabel} $volume kg · ${session.completedSetCount} 组',
-            style: Theme.of(context).textTheme.bodyMedium,
+      body: Column(
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              AppSpacing.sm,
+              AppSpacing.md,
+              AppSpacing.sm,
+            ),
+            child: SessionSummaryBar(session: session),
           ),
-          const SizedBox(height: AppSpacing.md),
-          for (final WorkoutExercise exercise in session.exercises) ...[
-            _ExerciseCard(session: session, exercise: exercise),
-            const SizedBox(height: AppSpacing.sm),
-          ],
-          OutlinedButton.icon(
-            key: const Key('btn_add_exercise'),
-            onPressed: () {
-              unawaited(_addExercise(context, ref));
-            },
-            icon: const Icon(Icons.add),
-            label: const Text(AppStrings.addExercise),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                0,
+                AppSpacing.md,
+                AppSpacing.md,
+              ),
+              children: <Widget>[
+                for (final WorkoutExercise exercise
+                    in session.exercises) ...<Widget>[
+                  _ExerciseCard(session: session, exercise: exercise),
+                  const SizedBox(height: AppSpacing.sm),
+                ],
+                OutlinedButton.icon(
+                  key: const Key('btn_add_exercise'),
+                  onPressed: () {
+                    unawaited(_addExercise(context, ref));
+                  },
+                  icon: const Icon(Icons.add),
+                  label: const Text(AppStrings.addExercise),
+                ),
+              ],
+            ),
           ),
+          if (!session.isFinished)
+            SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  AppSpacing.xs,
+                  AppSpacing.md,
+                  AppSpacing.sm,
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    key: const Key('btn_finish_workout'),
+                    onPressed: () {
+                      unawaited(
+                        ref
+                            .read(workoutSessionsProvider.notifier)
+                            .finish(session.id),
+                      );
+                    },
+                    child: const Text(AppStrings.finishThisSession),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
   }
 
   Future<void> _addExercise(BuildContext context, WidgetRef ref) async {
-    final picked = await Navigator.of(context).push<CatalogExercise>(
-      MaterialPageRoute<CatalogExercise>(
-        builder: (_) => const ExerciseLibraryPage(pickMode: true),
-      ),
-    );
+    final CatalogExercise? picked = await Navigator.of(context)
+        .push<CatalogExercise>(
+          MaterialPageRoute<CatalogExercise>(
+            builder: (_) => const ExerciseLibraryPage(pickMode: true),
+          ),
+        );
     if (picked == null || picked.nameZh.isEmpty) {
       return;
     }
-    final history = await ref
+    final WorkoutSet? history = await ref
         .read(workoutRepositoryProvider)
         .lastCompletedSet(
           exerciseName: picked.nameZh,
           exceptSessionId: session.id,
         );
-    final created = exerciseSeededFromHistory(
+    final WorkoutExercise created = exerciseSeededFromHistory(
       name: picked.nameZh,
       catalogId: picked.id.isEmpty ? null : picked.id,
       lastCompleted: history,
@@ -154,32 +186,42 @@ class _ExerciseCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final CurveColors colors = CurveColors.of(context);
+    final CatalogExercise? catalog = ExerciseCatalog.byId(exercise.catalogId);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: const Color(AppColors.surface),
-        borderRadius: BorderRadius.circular(AppRadii.md),
-      ),
+      decoration: curveSurfaceDecoration(colors),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           Row(
-            children: [
-              if (ExerciseCatalog.byId(exercise.catalogId) != null)
+            children: <Widget>[
+              if (catalog != null)
                 SizedBox(
-                  width: 56,
-                  height: 56,
+                  width: AppLayout.lottieThumb,
+                  height: AppLayout.lottieThumb,
                   child: Lottie.asset(
-                    ExerciseCatalog.byId(exercise.catalogId)!.lottieAsset,
+                    catalog.lottieAsset,
                     repeat: true,
                     fit: BoxFit.contain,
                   ),
                 ),
+              if (catalog != null) const SizedBox(width: AppSpacing.sm),
               Expanded(
-                child: Text(
-                  exercise.name,
-                  style: Theme.of(context).textTheme.titleMedium,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      exercise.name,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    if (catalog != null)
+                      Text(
+                        catalog.pattern.labelZh,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                  ],
                 ),
               ),
             ],
@@ -193,42 +235,68 @@ class _ExerciseCard extends ConsumerWidget {
                   exceptSessionId: session.id,
                 ),
             builder: (BuildContext context, AsyncSnapshot<WorkoutSet?> snap) {
-              final hint = snap.data;
+              final WorkoutSet? hint = snap.data;
               if (hint == null) {
                 return const SizedBox.shrink();
               }
               return Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.xs),
                 child: Text(
-                  '${AppStrings.lastHintPrefix} ${hint.weightKg} kg × ${hint.reps}',
+                  '${AppStrings.lastHintPrefix} ${hint.weightKg} ${AppStrings.weightColumn} × ${hint.reps}',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               );
             },
           ),
           const Row(
-            children: [
-              SizedBox(width: 36, child: Text(AppStrings.setColumn)),
+            children: <Widget>[
+              SizedBox(
+                width: AppLayout.setIndexSize,
+                child: Text(AppStrings.setColumn),
+              ),
+              SizedBox(width: AppSpacing.xs),
               Expanded(child: Text(AppStrings.weightColumn)),
+              SizedBox(width: AppSpacing.xs),
               Expanded(child: Text(AppStrings.repsColumn)),
               SizedBox(width: 48),
             ],
           ),
           const SizedBox(height: AppSpacing.xs),
           for (int i = 0; i < exercise.sets.length; i++)
-            _SetRow(
+            SessionSetRow(
               index: i,
-              session: session,
-              exercise: exercise,
               set: exercise.sets[i],
+              onWeightChanged: (double value) {
+                unawaited(
+                  _patch(ref, exercise.sets[i].copyWith(weightKg: value)),
+                );
+              },
+              onRepsChanged: (int value) {
+                unawaited(_patch(ref, exercise.sets[i].copyWith(reps: value)));
+              },
+              onToggleCompleted: () {
+                unawaited(
+                  _patch(
+                    ref,
+                    exercise.sets[i].copyWith(
+                      completed: !exercise.sets[i].completed,
+                    ),
+                  ),
+                );
+              },
             ),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton(
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
               onPressed: () {
                 unawaited(_addSet(ref));
               },
-              child: const Text(AppStrings.addSet),
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text(AppStrings.addSet),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: colors.primary,
+                side: BorderSide(color: colors.primary),
+              ),
             ),
           ),
         ],
@@ -237,13 +305,13 @@ class _ExerciseCard extends ConsumerWidget {
   }
 
   Future<void> _addSet(WidgetRef ref) async {
-    final history = await ref
+    final WorkoutSet? history = await ref
         .read(workoutRepositoryProvider)
         .lastCompletedSet(
           exerciseName: exercise.name,
           exceptSessionId: session.id,
         );
-    final exerciseId = exercise.id;
+    final String exerciseId = exercise.id;
     await ref.read(workoutSessionsProvider.notifier).edit(session.id, (
       WorkoutSession current,
     ) {
@@ -253,7 +321,7 @@ class _ExerciseCard extends ConsumerWidget {
               if (item.id != exerciseId) {
                 return item;
               }
-              final next = nextSetTemplate(
+              final WorkoutSet next = nextSetTemplate(
                 existingSets: item.sets,
                 lastCompleted: history,
               );
@@ -263,23 +331,9 @@ class _ExerciseCard extends ConsumerWidget {
       );
     });
   }
-}
-
-class _SetRow extends ConsumerWidget {
-  const _SetRow({
-    required this.index,
-    required this.session,
-    required this.exercise,
-    required this.set,
-  });
-
-  final int index;
-  final WorkoutSession session;
-  final WorkoutExercise exercise;
-  final WorkoutSet set;
 
   Future<void> _patch(WidgetRef ref, WorkoutSet nextSet) {
-    final exerciseId = exercise.id;
+    final String exerciseId = exercise.id;
     return ref.read(workoutSessionsProvider.notifier).edit(session.id, (
       WorkoutSession current,
     ) {
@@ -300,91 +354,5 @@ class _SetRow extends ConsumerWidget {
             .toList(growable: false),
       );
     });
-  }
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-      child: Row(
-        children: [
-          SizedBox(width: 36, child: Text('${index + 1}')),
-          Expanded(
-            child: _ValueChip(
-              label: set.weightKg.toStringAsFixed(
-                set.weightKg == set.weightKg.roundToDouble()
-                    ? 0
-                    : TrainingDefaults.weightFractionDigits,
-              ),
-              onTap: () async {
-                final value = await NumericKeypadSheet.show(
-                  context: context,
-                  kind: NumericFieldKind.weightKg,
-                  initial: set.weightKg,
-                  title: AppStrings.weightColumn,
-                );
-                if (value != null) {
-                  await _patch(ref, set.copyWith(weightKg: value));
-                }
-              },
-            ),
-          ),
-          const SizedBox(width: AppSpacing.xs),
-          Expanded(
-            child: _ValueChip(
-              label: '${set.reps}',
-              onTap: () async {
-                final value = await NumericKeypadSheet.show(
-                  context: context,
-                  kind: NumericFieldKind.reps,
-                  initial: set.reps.toDouble(),
-                  title: AppStrings.repsColumn,
-                );
-                if (value != null) {
-                  await _patch(ref, set.copyWith(reps: value.round()));
-                }
-              },
-            ),
-          ),
-          SizedBox(
-            width: 48,
-            child: Checkbox(
-              value: set.completed,
-              onChanged: (bool? checked) {
-                unawaited(
-                  _patch(ref, set.copyWith(completed: checked ?? false)),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ValueChip extends StatelessWidget {
-  const _ValueChip({required this.label, required this.onTap});
-
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: const Color(AppColors.surfaceHigh),
-      borderRadius: BorderRadius.circular(AppRadii.md),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadii.md),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.sm,
-            vertical: AppSpacing.sm,
-          ),
-          child: Text(label, style: Theme.of(context).textTheme.titleMedium),
-        ),
-      ),
-    );
   }
 }

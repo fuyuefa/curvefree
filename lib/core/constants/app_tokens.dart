@@ -11,16 +11,41 @@ abstract final class AppSpacing {
 abstract final class AppRadii {
   static const double md = 12;
   static const double lg = 16;
+
+  /// radius.card
+  static const double card = 20;
+
+  /// radius.cta
+  static const double cta = 18;
+
+  /// radius.chip (pill)
+  static const double chip = 999;
 }
 
-abstract final class AppColors {
-  static const int bg = 0xFF0A0A0A;
-  static const int surface = 0xFF161616;
-  static const int surfaceHigh = 0xFF222222;
-  static const int text = 0xFFF2F2F2;
-  static const int textMuted = 0xFF8A8A8A;
-  static const int accent = 0xFF3DDC97;
-  static const int danger = 0xFFFF6B6B;
+/// v3.2 layout sizes from the visual token doc.
+abstract final class AppLayout {
+  static const double bottomNavHeight = 56;
+  static const double screenTitleSize = 22;
+  static const double accentStripWidth = 4;
+  static const double accentStripHeight = 22;
+  static const double progressBarHeight = 8;
+  static const double progressEndpoint = 10;
+  static const double muscleDot = 28;
+  static const double setIndexSize = 28;
+  static const double lottieThumb = 48;
+  static const double navIndicatorWidth = 16;
+  static const double navIndicatorHeight = 3;
+  static const double iconSize = 20;
+}
+
+abstract final class AppFonts {
+  static const List<String> cjkFallback = <String>[
+    'PingFang SC',
+    'Noto Sans SC',
+    'Noto Sans CJK SC',
+    'Source Han Sans SC',
+    'Microsoft YaHei',
+  ];
 }
 
 abstract final class AppStrings {
@@ -44,9 +69,22 @@ abstract final class AppStrings {
   static const String startWorkout = '开始训练';
   static const String emptyWorkouts = '还没有训练课。点下方开始，当场记组。';
   static const String addExercise = '添加动作';
-  static const String addSet = '添加组';
+  static const String addSet = '加一组';
   static const String exerciseNameHint = '动作名，如卧推';
   static const String finishWorkout = '完成训练';
+  static const String finishThisSession = '完成本次训练';
+  static const String navToday = '今日';
+  static const String navMe = '我的';
+  static const String continueAction = '继续';
+  static const String weekProgress = '本周进度';
+  static const String statCompletion = '完成率';
+  static const String muscleGroupsTitle = '肌群';
+  static const String elapsedLabel = '用时';
+  static const String setsCountLabel = '组数';
+  static const String themeAppearance = '外观';
+  static const String themeSystem = '跟随系统';
+  static const String themeLight = '日间';
+  static const String themeDark = '夜间';
   static const String workoutInProgress = '进行中';
   static const String workoutFinished = '已完成';
   static const String deleteWorkout = '删除训练课';

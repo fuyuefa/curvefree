@@ -1,3 +1,4 @@
+import 'package:curvefree/app/theme/curve_colors.dart';
 import 'package:curvefree/core/constants/app_tokens.dart';
 import 'package:curvefree/features/training/models/workout_models.dart';
 import 'package:flutter/material.dart';
@@ -21,12 +22,17 @@ class WorkoutListTile extends StatelessWidget {
         : AppStrings.workoutInProgress;
     final volume = session.volumeKg.toStringAsFixed(0);
 
+    final CurveColors colors = CurveColors.of(context);
+    final RoundedRectangleBorder shape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(AppRadii.card),
+      side: BorderSide(color: colors.border),
+    );
     return Material(
-      color: const Color(AppColors.surface),
-      borderRadius: BorderRadius.circular(AppRadii.md),
+      color: colors.card,
+      shape: shape,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadii.md),
+        customBorder: shape,
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
           child: Row(
@@ -47,10 +53,7 @@ class WorkoutListTile extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(
-                Icons.chevron_right,
-                color: Color(AppColors.textMuted),
-              ),
+              Icon(Icons.chevron_right, color: colors.textTertiary),
             ],
           ),
         ),

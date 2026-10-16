@@ -183,6 +183,9 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
+    await tester.tap(find.byKey(const Key('nav_me')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
     await tester.tap(find.byKey(const Key('btn_export_backup')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
@@ -217,6 +220,9 @@ void main() {
     final restored = await store.read();
     expect(restored.workouts.single['id'], replacement.id);
     expect(find.text(AppStrings.backupRestored), findsOneWidget);
+    await tester.tap(find.byKey(const Key('nav_today')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
     expect(find.byKey(const Key('home_resume_workout')), findsOneWidget);
   });
 
@@ -245,7 +251,7 @@ void main() {
     await tester.pumpWidget(CurveFreeApp(localStore: store));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 200));
-    await tester.tap(find.byKey(const Key('tile_training')));
+    await tester.tap(find.byKey(const Key('nav_training')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 200));
     await tester.tap(find.byKey(const Key('btn_start_workout')));

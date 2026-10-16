@@ -1,3 +1,4 @@
+import 'package:curvefree/app/theme/curve_colors.dart';
 import 'package:curvefree/core/constants/app_tokens.dart';
 import 'package:curvefree/features/training/training_json_keys.dart';
 import 'package:flutter/material.dart';
@@ -28,7 +29,7 @@ class NumericKeypadSheet extends StatefulWidget {
         : initial.round().toString();
     return showModalBottomSheet<double>(
       context: context,
-      backgroundColor: const Color(AppColors.surface),
+      backgroundColor: CurveColors.of(context).elevated,
       isScrollControlled: true,
       builder: (BuildContext context) {
         return NumericKeypadSheet(
@@ -187,12 +188,13 @@ class _KeypadButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final CurveColors colors = CurveColors.of(context);
     return Material(
-      color: const Color(AppColors.surfaceHigh),
-      borderRadius: BorderRadius.circular(AppRadii.md),
+      color: colors.muted,
+      borderRadius: BorderRadius.circular(AppRadii.cta),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadii.md),
+        borderRadius: BorderRadius.circular(AppRadii.cta),
         child: Center(
           child: Text(label, style: Theme.of(context).textTheme.titleLarge),
         ),
