@@ -25,6 +25,20 @@ final class FoodLogRepository {
     });
   }
 
+  Future<void> update(FoodLogEntry entry) async {
+    await _store.mutate((snapshot) {
+      final next = snapshot.foodLogs
+          .map((Map<String, Object?> item) {
+            if (item[NutritionJsonKeys.id]?.toString() == entry.id) {
+              return entry.toJson();
+            }
+            return item;
+          })
+          .toList(growable: false);
+      return snapshot.copyWith(foodLogs: next);
+    });
+  }
+
   Future<void> delete(String id) async {
     await _store.mutate((snapshot) {
       final next = snapshot.foodLogs
