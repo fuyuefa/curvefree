@@ -2,10 +2,14 @@ import 'dart:async';
 
 import 'package:curvefree/core/constants/app_tokens.dart';
 import 'package:curvefree/core/storage/local_store_providers.dart';
-import 'package:curvefree/features/home/widgets/module_tile.dart';
+import 'package:curvefree/core/storage/local_store_snapshot.dart';
+import 'package:curvefree/features/home/muscle_groups.dart';
+import 'package:curvefree/features/home/week_progress.dart';
+import 'package:curvefree/features/home/widgets/today_cards.dart';
 import 'package:curvefree/features/plan/models/training_plan.dart';
-import 'package:curvefree/features/plan/plan_constants.dart';
+import 'package:curvefree/features/plan/pages/plan_page.dart';
 import 'package:curvefree/features/plan/plan_providers.dart';
+import 'package:curvefree/features/training/elapsed_format.dart';
 import 'package:curvefree/features/training/models/workout_models.dart';
 import 'package:curvefree/features/training/pages/session_page.dart';
 import 'package:curvefree/features/training/training_providers.dart';
@@ -17,24 +21,33 @@ class TodayTrainingSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final store = ref.watch(localStoreSnapshotProvider);
-    final sessions = ref.watch(workoutSessionsProvider);
+    final AsyncValue<LocalStoreSnapshot> store = ref.watch(
+      localStoreSnapshotProvider,
+    );
+    final AsyncValue<List<WorkoutSession>> sessions = ref.watch(
+      workoutSessionsProvider,
+    );
     if (store.isLoading || sessions.isLoading) {
       return const SizedBox.shrink();
     }
-    final plan = ref.watch(trainingPlanProvider);
-    final unfinished = _newestUnfinished(sessions.valueOrNull);
-    final today = plan?.sessionForWeekday(DateTime.now().weekday);
+    final TrainingPlan? plan = ref.watch(trainingPlanProvider);
+    final List<WorkoutSession> loaded =
+        sessions.valueOrNull ?? const <WorkoutSession>[];
+    final DateTime now = DateTime.now();
+    final WorkoutSession? unfinished = _newestUnfinished(loaded);
+    final PlannedSession? today = plan?.sessionForWeekday(now.weekday);
+    final WeekProgress progress = summarizeWeek(
+      now: now,
+      sessions: loaded,
+      plan: plan,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (unfinished != null) ...[
-          ModuleTile(
-            key: const Key('home_resume_workout'),
-            title: AppStrings.resumeWorkout,
-            subtitle: _resumeSubtitle(unfinished),
-            icon: Icons.play_arrow,
+      children: <Widget>[
+        if (unfinished != null) ...<Widget>[
+          TodayResumeCard(
+            detail: _resumeDetail(unfinished, now),
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute<void>(
@@ -45,25 +58,30 @@ class TodayTrainingSection extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.sm),
         ],
+        WeekProgressCard(progress: progress),
+        const SizedBox(height: AppSpacing.sm),
+        MuscleGroupDots(
+          trained: trainedMuscleGroups(sessions: loaded, now: now),
+          planned: plannedMuscleGroups(today),
+        ),
+        const SizedBox(height: AppSpacing.sm),
         if (today != null)
-          ModuleTile(
-            key: const Key('home_today_plan'),
-            title:
-                '${AppStrings.todayPlan} · ${PlanWeekdays.label(today.weekday)} ${today.title}',
-            subtitle: _planSubtitle(today),
-            icon: Icons.event_available,
+          TodayPlanCard(
+            session: today,
             onTap: () {
               unawaited(_startToday(context, ref, today));
             },
           )
         else if (plan != null)
-          const Text(
-            AppStrings.todayRest,
-            key: Key('home_today_rest'),
-            style: TextStyle(color: Color(AppColors.textMuted)),
+          const TodayRestCard()
+        else
+          TodayPlanEmptyCard(
+            onTap: () {
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute<void>(builder: (_) => const PlanPage()));
+            },
           ),
-        if (unfinished != null || today != null || plan != null)
-          const SizedBox(height: AppSpacing.sm),
       ],
     );
   }
@@ -73,7 +91,7 @@ class TodayTrainingSection extends ConsumerWidget {
     WidgetRef ref,
     PlannedSession planned,
   ) async {
-    final workout = await ref
+    final WorkoutSession workout = await ref
         .read(workoutSessionsProvider.notifier)
         .startFromPlan(planned);
     if (!context.mounted) {
@@ -87,10 +105,7 @@ class TodayTrainingSection extends ConsumerWidget {
   }
 }
 
-WorkoutSession? _newestUnfinished(List<WorkoutSession>? sessions) {
-  if (sessions == null) {
-    return null;
-  }
+WorkoutSession? _newestUnfinished(List<WorkoutSession> sessions) {
   for (final WorkoutSession session in sessions) {
     if (!session.isFinished) {
       return session;
@@ -99,25 +114,10 @@ WorkoutSession? _newestUnfinished(List<WorkoutSession>? sessions) {
   return null;
 }
 
-String _resumeSubtitle(WorkoutSession session) {
-  final names = session.exercises
-      .map((WorkoutExercise exercise) => exercise.name.trim())
-      .where((String name) => name.isNotEmpty)
-      .join('、');
-  final volume = session.volumeKg.toStringAsFixed(0);
-  final stats =
-      '${AppStrings.workoutInProgress} · ${session.completedSetCount} 组 · ${AppStrings.volumeLabel} $volume kg';
-  if (names.isEmpty) {
-    return stats;
-  }
-  return '$stats · $names';
-}
-
-String _planSubtitle(PlannedSession session) {
-  if (session.items.isEmpty) {
-    return AppStrings.startFromPlan;
-  }
-  return session.items
-      .map((PlannedItem item) => '${item.nameZh} ${item.sets}×${item.reps}')
-      .join('、');
+String _resumeDetail(WorkoutSession session, DateTime now) {
+  final String elapsed = ElapsedFormat.format(
+    now.difference(session.startedAt),
+  );
+  final String volume = session.volumeKg.toStringAsFixed(0);
+  return '$elapsed · ${session.completedSetCount} ${AppStrings.setColumn} · ${AppStrings.volumeLabel} $volume ${AppStrings.weightColumn}';
 }

@@ -1,3 +1,5 @@
+import 'package:curvefree/app/theme/curve_colors.dart';
+import 'package:curvefree/app/theme/curve_surfaces.dart';
 import 'package:curvefree/core/constants/app_tokens.dart';
 import 'package:curvefree/features/plan/models/training_plan.dart';
 import 'package:curvefree/features/plan/plan_constants.dart';
@@ -126,10 +128,7 @@ class _SessionCard extends StatelessWidget {
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: const Color(AppColors.surface),
-        borderRadius: BorderRadius.circular(AppRadii.md),
-      ),
+      decoration: curveSurfaceDecoration(CurveColors.of(context)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

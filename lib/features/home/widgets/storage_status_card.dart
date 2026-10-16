@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:curvefree/app/theme/curve_colors.dart';
+import 'package:curvefree/app/theme/curve_surfaces.dart';
 import 'package:curvefree/core/constants/app_tokens.dart';
 import 'package:flutter/material.dart';
 
@@ -34,14 +36,12 @@ class StorageStatusCard extends StatelessWidget {
       statusLabel = AppStrings.storageEmpty;
     }
 
+    final CurveColors colors = CurveColors.of(context);
     return Container(
       key: const Key('storage_status_card'),
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: const Color(AppColors.surface),
-        borderRadius: BorderRadius.circular(AppRadii.md),
-      ),
+      decoration: curveSurfaceDecoration(colors),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -60,10 +60,7 @@ class StorageStatusCard extends StatelessWidget {
           ],
           if (errorMessage != null) ...[
             const SizedBox(height: AppSpacing.xs),
-            Text(
-              errorMessage!,
-              style: const TextStyle(color: Color(AppColors.danger)),
-            ),
+            Text(errorMessage!, style: TextStyle(color: colors.error)),
           ],
           if (ready &&
               errorMessage == null &&

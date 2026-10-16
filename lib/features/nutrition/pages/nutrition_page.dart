@@ -1,3 +1,5 @@
+import 'package:curvefree/app/theme/curve_colors.dart';
+import 'package:curvefree/app/theme/curve_surfaces.dart';
 import 'package:curvefree/core/constants/app_tokens.dart';
 import 'package:curvefree/features/nutrition/data/food_catalog.dart';
 import 'package:curvefree/features/nutrition/models/food_models.dart';
@@ -124,10 +126,7 @@ class _SummaryCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: const Color(AppColors.surface),
-        borderRadius: BorderRadius.circular(AppRadii.md),
-      ),
+      decoration: curveSurfaceDecoration(CurveColors.of(context)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -182,10 +181,7 @@ class _AssistCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: const Color(AppColors.surface),
-        borderRadius: BorderRadius.circular(AppRadii.md),
-      ),
+      decoration: curveSurfaceDecoration(CurveColors.of(context)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -252,9 +248,6 @@ class _FoodPickerPageState extends State<_FoodPickerPage> {
               key: const Key('field_food_search'),
               decoration: const InputDecoration(
                 hintText: AppStrings.searchFoodHint,
-                filled: true,
-                fillColor: Color(AppColors.surface),
-                border: InputBorder.none,
               ),
               onChanged: (String value) => setState(() => _query = value),
             ),
