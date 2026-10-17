@@ -9,15 +9,21 @@ final class FoodItem {
     required this.proteinG,
     required this.carbG,
     required this.fatG,
+    this.nameEn = '',
+    this.fdcId = '',
   });
 
   final String id;
   final String nameZh;
+  final String nameEn;
   final String source;
+  final String fdcId;
   final double kcal;
   final double proteinG;
   final double carbG;
   final double fatG;
+
+  String get label => nameZh.isNotEmpty ? nameZh : nameEn;
 
   double scale(double per100, double grams) =>
       per100 * grams / NutritionDefaults.gramsPerReference;
@@ -26,7 +32,9 @@ final class FoodItem {
     return FoodItem(
       id: json[FoodAssetKeys.id]?.toString() ?? '',
       nameZh: json[FoodAssetKeys.nameZh]?.toString() ?? '',
+      nameEn: json[FoodAssetKeys.nameEn]?.toString() ?? '',
       source: json[FoodAssetKeys.source]?.toString() ?? 'estimate',
+      fdcId: _asId(json[FoodAssetKeys.fdcId]),
       kcal: _asDouble(json[FoodAssetKeys.kcal]),
       proteinG: _asDouble(json[FoodAssetKeys.proteinG]),
       carbG: _asDouble(json[FoodAssetKeys.carbG]),
@@ -125,4 +133,17 @@ double _asDouble(Object? value) {
     return value.toDouble();
   }
   return double.tryParse(value?.toString() ?? '') ?? 0;
+}
+
+String _asId(Object? value) {
+  if (value == null) {
+    return '';
+  }
+  if (value is int) {
+    return value.toString();
+  }
+  if (value is num) {
+    return value.round().toString();
+  }
+  return value.toString();
 }

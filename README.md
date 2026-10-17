@@ -43,6 +43,7 @@ pwsh tooling/qa/run_qa.ps1
 - 动作库与原创 Lottie 示意循环
 - 按目标/天数/器械生成训练计划
 - 饮食记录、热量蛋白汇总，以及蛋白缺口建议
+- 内容包：内置动作扩展与食物表；可从 GitHub Releases 更新，没网时继续用上一份。见 [docs/CONTENT_PACK.md](docs/CONTENT_PACK.md)
 
 无社区、商城、跟练、云同步。训练和饮食留在本机；可把整库导出成文件，再从文件恢复。
 

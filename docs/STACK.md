@@ -10,7 +10,8 @@
 | 本机存储 | JSON 文档库（path_provider / SharedPreferences） | 无云同步；写入串行并先写临时文件再替换 |
 | 备份文件 | file_picker + share_plus | 用户主动另存/分享 JSON；应用不上传训练或饮食 |
 | 动作动画 | Lottie | 本仓库原创几何循环，见 `docs/CONTENT_ASSETS.md` |
-| 食物营养 | `assets/data/foods.json` | USDA 公有领域典型值 + 中餐近似估算，见文件 attribution |
+| 内容包 | `assets/content/` + 本机双槽 | 内置基线可离线使用；GitHub Releases 资源经 sha256 校验后替换。校验库为 `crypto`，只用于核对发布资源，失败则保留上一份。见 `docs/CONTENT_PACK.md` |
+| 食物营养 | `assets/content/foods.json` | USDA 公有领域典型值 + 中餐近似估算，见 `assets/content/ATTRIBUTION.md` |
 | 许可 | GPL-3.0 | 允许使用但衍生分发需保持开源 |
 | 质检 | flutter analyze/test + Playwright + Lighthouse | Web 预览路径 |
 

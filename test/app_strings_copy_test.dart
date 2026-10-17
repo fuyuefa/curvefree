@@ -10,6 +10,7 @@ void main() {
       'lib/features/cycle/cycle_constants.dart',
       'lib/features/plan/plan_constants.dart',
       'lib/features/nutrition/nutrition_constants.dart',
+      'lib/features/content/content_copy.dart',
     ];
     final RegExp declared = RegExp(r'static const String\s+\w+');
     final RegExp literal = RegExp(

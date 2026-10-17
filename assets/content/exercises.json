@@ -1,0 +1,297 @@
+{
+  "license": "Unlicense",
+  "sourceUrl": "https://github.com/yuhonas/free-exercise-db",
+  "note": "Chinese names are CurveFree translations. English names and sourceId come from free-exercise-db. Images and instruction text are omitted. cable maps to machine, kettlebells to dumbbell, ez-bar to barbell.",
+  "exercises": [
+    {
+      "id": "fedb_barbell_curl",
+      "sourceId": "Barbell_Curl",
+      "nameZh": "杠铃弯举",
+      "nameEn": "Barbell Curl",
+      "pattern": "pull",
+      "equipment": "barbell",
+      "bodyParts": [
+        "arms"
+      ]
+    },
+    {
+      "id": "fedb_dumbbell_bicep_curl",
+      "sourceId": "Dumbbell_Bicep_Curl",
+      "nameZh": "哑铃弯举",
+      "nameEn": "Dumbbell Bicep Curl",
+      "pattern": "pull",
+      "equipment": "dumbbell",
+      "bodyParts": [
+        "arms"
+      ]
+    },
+    {
+      "id": "fedb_hammer_curls",
+      "sourceId": "Hammer_Curls",
+      "nameZh": "锤式弯举",
+      "nameEn": "Hammer Curls",
+      "pattern": "pull",
+      "equipment": "dumbbell",
+      "bodyParts": [
+        "arms"
+      ]
+    },
+    {
+      "id": "fedb_triceps_pushdown",
+      "sourceId": "Triceps_Pushdown",
+      "nameZh": "绳索下压",
+      "nameEn": "Triceps Pushdown",
+      "pattern": "push",
+      "equipment": "machine",
+      "bodyParts": [
+        "arms"
+      ]
+    },
+    {
+      "id": "fedb_ez_bar_skullcrusher",
+      "sourceId": "EZ-Bar_Skullcrusher",
+      "nameZh": "仰卧臂屈伸",
+      "nameEn": "EZ-Bar Skullcrusher",
+      "pattern": "push",
+      "equipment": "barbell",
+      "bodyParts": [
+        "arms"
+      ]
+    },
+    {
+      "id": "fedb_close_grip_barbell_bench_press",
+      "sourceId": "Close-Grip_Barbell_Bench_Press",
+      "nameZh": "窄距卧推",
+      "nameEn": "Close-Grip Barbell Bench Press",
+      "pattern": "push",
+      "equipment": "barbell",
+      "bodyParts": [
+        "chest",
+        "arms"
+      ]
+    },
+    {
+      "id": "fedb_side_lateral_raise",
+      "sourceId": "Side_Lateral_Raise",
+      "nameZh": "侧平举",
+      "nameEn": "Side Lateral Raise",
+      "pattern": "push",
+      "equipment": "dumbbell",
+      "bodyParts": [
+        "shoulders"
+      ]
+    },
+    {
+      "id": "fedb_seated_dumbbell_press",
+      "sourceId": "Seated_Dumbbell_Press",
+      "nameZh": "坐姿哑铃推举",
+      "nameEn": "Seated Dumbbell Press",
+      "pattern": "push",
+      "equipment": "dumbbell",
+      "bodyParts": [
+        "shoulders"
+      ]
+    },
+    {
+      "id": "fedb_front_dumbbell_raise",
+      "sourceId": "Front_Dumbbell_Raise",
+      "nameZh": "前平举",
+      "nameEn": "Front Dumbbell Raise",
+      "pattern": "push",
+      "equipment": "dumbbell",
+      "bodyParts": [
+        "shoulders"
+      ]
+    },
+    {
+      "id": "fedb_reverse_flyes",
+      "sourceId": "Reverse_Flyes",
+      "nameZh": "反向飞鸟",
+      "nameEn": "Reverse Flyes",
+      "pattern": "pull",
+      "equipment": "dumbbell",
+      "bodyParts": [
+        "shoulders"
+      ]
+    },
+    {
+      "id": "fedb_leg_extensions",
+      "sourceId": "Leg_Extensions",
+      "nameZh": "腿屈伸",
+      "nameEn": "Leg Extensions",
+      "pattern": "squat",
+      "equipment": "machine",
+      "bodyParts": [
+        "legs"
+      ]
+    },
+    {
+      "id": "fedb_lying_leg_curls",
+      "sourceId": "Lying_Leg_Curls",
+      "nameZh": "俯卧腿弯举",
+      "nameEn": "Lying Leg Curls",
+      "pattern": "hinge",
+      "equipment": "machine",
+      "bodyParts": [
+        "legs"
+      ]
+    },
+    {
+      "id": "fedb_standing_calf_raises",
+      "sourceId": "Standing_Calf_Raises",
+      "nameZh": "站姿提踵",
+      "nameEn": "Standing Calf Raises",
+      "pattern": "squat",
+      "equipment": "machine",
+      "bodyParts": [
+        "legs"
+      ]
+    },
+    {
+      "id": "fedb_goblet_squat",
+      "sourceId": "Goblet_Squat",
+      "nameZh": "高脚杯深蹲",
+      "nameEn": "Goblet Squat",
+      "pattern": "squat",
+      "equipment": "dumbbell",
+      "bodyParts": [
+        "legs"
+      ]
+    },
+    {
+      "id": "fedb_split_squat_with_dumbbells",
+      "sourceId": "Split_Squat_with_Dumbbells",
+      "nameZh": "哑铃分腿蹲",
+      "nameEn": "Split Squat with Dumbbells",
+      "pattern": "squat",
+      "equipment": "dumbbell",
+      "bodyParts": [
+        "legs",
+        "glutes"
+      ]
+    },
+    {
+      "id": "fedb_good_morning",
+      "sourceId": "Good_Morning",
+      "nameZh": "早安式",
+      "nameEn": "Good Morning",
+      "pattern": "hinge",
+      "equipment": "barbell",
+      "bodyParts": [
+        "back",
+        "legs"
+      ]
+    },
+    {
+      "id": "fedb_hyperextensions_back_extensions",
+      "sourceId": "Hyperextensions_Back_Extensions",
+      "nameZh": "背屈伸",
+      "nameEn": "Hyperextensions (Back Extensions)",
+      "pattern": "hinge",
+      "equipment": "machine",
+      "bodyParts": [
+        "back"
+      ]
+    },
+    {
+      "id": "fedb_seated_cable_rows",
+      "sourceId": "Seated_Cable_Rows",
+      "nameZh": "坐姿划船",
+      "nameEn": "Seated Cable Rows",
+      "pattern": "pull",
+      "equipment": "machine",
+      "bodyParts": [
+        "back"
+      ]
+    },
+    {
+      "id": "fedb_chin_up",
+      "sourceId": "Chin-Up",
+      "nameZh": "反手引体",
+      "nameEn": "Chin-Up",
+      "pattern": "pull",
+      "equipment": "bodyweight",
+      "bodyParts": [
+        "back",
+        "arms"
+      ]
+    },
+    {
+      "id": "fedb_pushups",
+      "sourceId": "Pushups",
+      "nameZh": "俯卧撑",
+      "nameEn": "Pushups",
+      "pattern": "push",
+      "equipment": "bodyweight",
+      "bodyParts": [
+        "chest"
+      ]
+    },
+    {
+      "id": "fedb_incline_dumbbell_press",
+      "sourceId": "Incline_Dumbbell_Press",
+      "nameZh": "上斜哑铃卧推",
+      "nameEn": "Incline Dumbbell Press",
+      "pattern": "push",
+      "equipment": "dumbbell",
+      "bodyParts": [
+        "chest"
+      ]
+    },
+    {
+      "id": "fedb_decline_barbell_bench_press",
+      "sourceId": "Decline_Barbell_Bench_Press",
+      "nameZh": "下斜杠铃卧推",
+      "nameEn": "Decline Barbell Bench Press",
+      "pattern": "push",
+      "equipment": "barbell",
+      "bodyParts": [
+        "chest"
+      ]
+    },
+    {
+      "id": "fedb_dumbbell_flyes",
+      "sourceId": "Dumbbell_Flyes",
+      "nameZh": "哑铃飞鸟",
+      "nameEn": "Dumbbell Flyes",
+      "pattern": "push",
+      "equipment": "dumbbell",
+      "bodyParts": [
+        "chest"
+      ]
+    },
+    {
+      "id": "fedb_cable_crossover",
+      "sourceId": "Cable_Crossover",
+      "nameZh": "绳索夹胸",
+      "nameEn": "Cable Crossover",
+      "pattern": "push",
+      "equipment": "machine",
+      "bodyParts": [
+        "chest"
+      ]
+    },
+    {
+      "id": "fedb_crunches",
+      "sourceId": "Crunches",
+      "nameZh": "卷腹",
+      "nameEn": "Crunches",
+      "pattern": "core",
+      "equipment": "bodyweight",
+      "bodyParts": [
+        "core"
+      ]
+    },
+    {
+      "id": "fedb_hanging_leg_raise",
+      "sourceId": "Hanging_Leg_Raise",
+      "nameZh": "悬垂举腿",
+      "nameEn": "Hanging Leg Raise",
+      "pattern": "core",
+      "equipment": "bodyweight",
+      "bodyParts": [
+        "core"
+      ]
+    }
+  ]
+}

@@ -2,7 +2,7 @@ import 'package:curvefree/features/exercises/models/catalog_exercise.dart';
 
 /// Built-in strength catalog. Names are common gym terms, not scraped UI copy.
 abstract final class ExerciseCatalog {
-  static const List<CatalogExercise> all = <CatalogExercise>[
+  static const List<CatalogExercise> baseline = <CatalogExercise>[
     CatalogExercise(
       id: 'ex_barbell_bench',
       nameZh: '杠铃卧推',
@@ -113,27 +113,98 @@ abstract final class ExerciseCatalog {
     ),
   ];
 
+  static List<CatalogExercise> _overlayExercises = const <CatalogExercise>[];
+  static Map<String, List<String>> _overlayBodyParts =
+      const <String, List<String>>{};
+  static List<CatalogExercise>? _mergedExercises;
+  static Map<String, List<String>>? _mergedBodyParts;
+
+  /// Baseline plus the active content pack. Same ids in the pack replace
+  /// the baseline row; new ids are appended.
+  static List<CatalogExercise> get all {
+    if (_overlayExercises.isEmpty) {
+      return baseline;
+    }
+    return _mergedExercises ??= _mergeExercises();
+  }
+
+  static void applyOverlay({
+    required List<CatalogExercise> exercises,
+    required Map<String, List<String>> bodyParts,
+  }) {
+    _overlayExercises = List<CatalogExercise>.unmodifiable(exercises);
+    _overlayBodyParts = Map<String, List<String>>.unmodifiable(bodyParts);
+    _mergedExercises = null;
+    _mergedBodyParts = null;
+  }
+
+  static void clearOverlay() {
+    applyOverlay(
+      exercises: const <CatalogExercise>[],
+      bodyParts: const <String, List<String>>{},
+    );
+  }
+
   /// Stable body-part ids shared with onboarding prefer chips.
-  static const Map<String, List<String>> bodyPartIds = <String, List<String>>{
-    'ex_barbell_bench': <String>['chest'],
-    'ex_incline_bench': <String>['chest'],
-    'ex_overhead_press': <String>['shoulders'],
-    'ex_dip': <String>['chest', 'arms'],
-    'ex_db_press': <String>['chest'],
-    'ex_barbell_row': <String>['back'],
-    'ex_lat_pulldown': <String>['back'],
-    'ex_pullup': <String>['back'],
-    'ex_db_row': <String>['back'],
-    'ex_face_pull': <String>['shoulders'],
-    'ex_back_squat': <String>['legs', 'glutes'],
-    'ex_front_squat': <String>['legs'],
-    'ex_leg_press': <String>['legs'],
-    'ex_lunge': <String>['legs', 'glutes'],
-    'ex_deadlift': <String>['back', 'legs', 'glutes'],
-    'ex_rdl': <String>['legs', 'glutes'],
-    'ex_hip_thrust': <String>['glutes'],
-    'ex_plank': <String>['core'],
-  };
+  static const Map<String, List<String>> baselineBodyParts =
+      <String, List<String>>{
+        'ex_barbell_bench': <String>['chest'],
+        'ex_incline_bench': <String>['chest'],
+        'ex_overhead_press': <String>['shoulders'],
+        'ex_dip': <String>['chest', 'arms'],
+        'ex_db_press': <String>['chest'],
+        'ex_barbell_row': <String>['back'],
+        'ex_lat_pulldown': <String>['back'],
+        'ex_pullup': <String>['back'],
+        'ex_db_row': <String>['back'],
+        'ex_face_pull': <String>['shoulders'],
+        'ex_back_squat': <String>['legs', 'glutes'],
+        'ex_front_squat': <String>['legs'],
+        'ex_leg_press': <String>['legs'],
+        'ex_lunge': <String>['legs', 'glutes'],
+        'ex_deadlift': <String>['back', 'legs', 'glutes'],
+        'ex_rdl': <String>['legs', 'glutes'],
+        'ex_hip_thrust': <String>['glutes'],
+        'ex_plank': <String>['core'],
+      };
+
+  static Map<String, List<String>> get bodyPartIds {
+    if (_overlayExercises.isEmpty) {
+      return baselineBodyParts;
+    }
+    return _mergedBodyParts ??= _mergeBodyParts();
+  }
+
+  static List<CatalogExercise> _mergeExercises() {
+    final Map<String, CatalogExercise> byId = <String, CatalogExercise>{
+      for (final CatalogExercise item in baseline) item.id: item,
+    };
+    final List<CatalogExercise> appended = <CatalogExercise>[];
+    for (final CatalogExercise item in _overlayExercises) {
+      if (byId.containsKey(item.id)) {
+        byId[item.id] = item;
+      } else {
+        appended.add(item);
+      }
+    }
+    return <CatalogExercise>[
+      for (final CatalogExercise item in baseline) byId[item.id]!,
+      ...appended,
+    ];
+  }
+
+  static Map<String, List<String>> _mergeBodyParts() {
+    final Map<String, List<String>> merged = <String, List<String>>{
+      ...baselineBodyParts,
+    };
+    for (final CatalogExercise item in _overlayExercises) {
+      final List<String>? parts = _overlayBodyParts[item.id];
+      if (parts != null && parts.isNotEmpty) {
+        merged[item.id] = parts;
+      }
+    }
+    return merged;
+  }
 
   static const Map<String, String> _bodyPartLabel = <String, String>{
     'chest': '胸',
@@ -184,6 +255,7 @@ abstract final class ExerciseCatalog {
         .where(
           (CatalogExercise item) =>
               item.nameZh.contains(needle) ||
+              item.nameEn.toLowerCase().contains(needle.toLowerCase()) ||
               item.pattern.labelZh.contains(needle) ||
               item.equipment.labelZh.contains(needle) ||
               _labelsFor(item.id).any((String label) => label.contains(needle)),

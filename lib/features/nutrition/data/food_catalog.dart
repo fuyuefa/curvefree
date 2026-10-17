@@ -9,7 +9,7 @@ final class FoodCatalog {
 
   final List<FoodItem> items;
 
-  static const String assetPath = 'assets/data/foods.json';
+  static const String assetPath = 'assets/content/foods.json';
 
   static Future<FoodCatalog> loadFromBundle() async {
     final raw = await rootBundle.loadString(assetPath);
@@ -43,8 +43,13 @@ final class FoodCatalog {
     if (needle.isEmpty) {
       return items;
     }
+    final String lower = needle.toLowerCase();
     return items
-        .where((FoodItem item) => item.nameZh.contains(needle))
+        .where(
+          (FoodItem item) =>
+              item.nameZh.contains(needle) ||
+              item.nameEn.toLowerCase().contains(lower),
+        )
         .toList(growable: false);
   }
 
@@ -55,6 +60,27 @@ final class FoodCatalog {
       }
     }
     return null;
+  }
+
+  FoodCatalog overlay(FoodCatalog extra) {
+    if (extra.items.isEmpty) {
+      return this;
+    }
+    final Map<String, FoodItem> byId = <String, FoodItem>{
+      for (final FoodItem item in items) item.id: item,
+    };
+    final List<FoodItem> appended = <FoodItem>[];
+    for (final FoodItem item in extra.items) {
+      if (byId.containsKey(item.id)) {
+        byId[item.id] = item;
+      } else {
+        appended.add(item);
+      }
+    }
+    return FoodCatalog(<FoodItem>[
+      for (final FoodItem item in items) byId[item.id]!,
+      ...appended,
+    ]);
   }
 
   FoodItem? highestProtein() {

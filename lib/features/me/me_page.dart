@@ -4,6 +4,10 @@ import 'package:curvefree/app/theme/theme_mode.dart';
 import 'package:curvefree/core/constants/app_tokens.dart';
 import 'package:curvefree/core/storage/local_store_providers.dart';
 import 'package:curvefree/core/storage/local_store_snapshot.dart';
+import 'package:curvefree/features/content/content_copy.dart';
+import 'package:curvefree/features/content/content_pack_session.dart';
+import 'package:curvefree/features/content/content_providers.dart';
+import 'package:curvefree/features/content/pages/content_pack_page.dart';
 import 'package:curvefree/features/cycle/cycle_constants.dart';
 import 'package:curvefree/features/cycle/cycle_providers.dart';
 import 'package:curvefree/features/cycle/models/cycle_profile.dart';
@@ -22,6 +26,9 @@ class MePage extends ConsumerWidget {
     final CycleProfile cycle = ref.watch(cycleProfileProvider);
     final AsyncValue<LocalStoreSnapshot> asyncStore = ref.watch(
       localStoreSnapshotProvider,
+    );
+    final AsyncValue<ContentSnapshot> contentPack = ref.watch(
+      contentSnapshotProvider,
     );
 
     return Scaffold(
@@ -108,6 +115,22 @@ class MePage extends ConsumerWidget {
                 schemaVersion: 0,
                 errorMessage: error.toString(),
               ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            ContentPackEntry(
+              subtitle: contentPack.maybeWhen(
+                data: (ContentSnapshot snapshot) => snapshot.installed
+                    ? '${ContentCopy.installed} ${snapshot.manifest.version}'
+                    : '${ContentCopy.bundled} ${snapshot.manifest.version}',
+                orElse: () => ContentCopy.subtitle,
+              ),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const ContentPackPage(),
+                  ),
+                );
+              },
             ),
             const SizedBox(height: AppSpacing.xl),
             Text(

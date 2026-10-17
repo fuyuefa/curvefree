@@ -55,7 +55,7 @@ class _FoodPickerPageState extends State<FoodPickerPage> {
               itemBuilder: (BuildContext context, int index) {
                 final FoodItem food = items[index];
                 return ListTile(
-                  title: Text(food.nameZh),
+                  title: Text(food.label),
                   subtitle: Text(
                     '${food.kcal.round()} kcal · 蛋白 ${food.proteinG} g / 100g',
                   ),

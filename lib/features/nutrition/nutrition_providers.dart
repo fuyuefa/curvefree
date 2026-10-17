@@ -1,4 +1,6 @@
 import 'package:curvefree/core/storage/local_store_providers.dart';
+import 'package:curvefree/features/content/content_pack_session.dart';
+import 'package:curvefree/features/content/content_providers.dart';
 import 'package:curvefree/features/nutrition/data/food_catalog.dart';
 import 'package:curvefree/features/nutrition/data/food_log_repository.dart';
 import 'package:curvefree/features/nutrition/models/food_models.dart';
@@ -7,8 +9,11 @@ import 'package:curvefree/features/nutrition/nutrition_targets.dart';
 import 'package:curvefree/features/onboarding/models/user_profile.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final foodCatalogProvider = FutureProvider<FoodCatalog>((Ref ref) {
-  return FoodCatalog.loadFromBundle();
+final foodCatalogProvider = FutureProvider<FoodCatalog>((Ref ref) async {
+  final ContentSnapshot snapshot = await ref.watch(
+    contentSnapshotProvider.future,
+  );
+  return snapshot.foods;
 });
 
 final foodLogRepositoryProvider = Provider<FoodLogRepository>((Ref ref) {
