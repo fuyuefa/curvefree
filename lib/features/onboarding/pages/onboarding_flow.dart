@@ -96,6 +96,12 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
             goal: profile.goal!,
             daysPerWeek: profile.daysPerWeek!,
             equipment: profile.equipment!,
+            sex: profile.sex,
+            heightCm: profile.heightCm,
+            weightKg: profile.weightKg,
+            experience: profile.experience,
+            preferences: profile.preferences,
+            activity: profile.activity,
           ).toJson();
         }
         return current.copyWith(settings: settings);

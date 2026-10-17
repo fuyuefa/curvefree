@@ -41,6 +41,41 @@ abstract final class NutritionDefaults {
   static const double defaultLogGrams = 100;
 }
 
+/// Mifflin–St Jeor inputs. Age is not collected, so [referenceAgeYears] is the
+/// adult reference used instead of a measured age.
+abstract final class EnergyEstimate {
+  static const int referenceAgeYears = 30;
+
+  static const double weightCoefficient = 10;
+  static const double heightCoefficient = 6.25;
+  static const double ageCoefficient = 5;
+  static const double maleBmrConstant = 5;
+  static const double femaleBmrConstant = -161;
+
+  static const double sedentaryActivityFactor = 1.2;
+  static const double lightActivityFactor = 1.375;
+  static const double moderateActivityFactor = 1.55;
+  static const double activeActivityFactor = 1.725;
+
+  static const double hypertrophyFactor = 1.1;
+  static const double strengthFactor = 1;
+  static const double fatLossFactor = 0.85;
+  static const double maintenanceFactor = 1;
+
+  static const double proteinGramsPerKg = 1.6;
+  static const double hypertrophyProteinGramsPerKg = 1.8;
+  static const double fatLossProteinGramsPerKg = 2;
+
+  static const double fatEnergyFraction = 0.25;
+  static const double kcalPerProteinG = 4;
+  static const double kcalPerCarbG = 4;
+  static const double kcalPerFatG = 9;
+
+  static const int minKcal = 1200;
+  static const int maxKcal = 4500;
+  static const int minFatG = 35;
+}
+
 abstract final class MealNames {
   static const String breakfast = 'breakfast';
   static const String lunch = 'lunch';

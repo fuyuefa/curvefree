@@ -7,6 +7,7 @@ import 'package:curvefree/features/nutrition/models/food_models.dart';
 import 'package:curvefree/features/nutrition/nutrition_constants.dart';
 import 'package:curvefree/features/nutrition/nutrition_math.dart';
 import 'package:curvefree/features/nutrition/nutrition_providers.dart';
+import 'package:curvefree/features/nutrition/nutrition_targets.dart';
 import 'package:curvefree/features/nutrition/pages/food_picker_page.dart';
 import 'package:curvefree/features/nutrition/widgets/nutrition_home_sections.dart';
 import 'package:curvefree/features/training/widgets/numeric_keypad_sheet.dart';
