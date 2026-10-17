@@ -15,7 +15,9 @@ abstract final class NutritionCopy {
 abstract final class FoodAssetKeys {
   static const String id = 'id';
   static const String nameZh = 'nameZh';
+  static const String nameEn = 'nameEn';
   static const String source = 'source';
+  static const String fdcId = 'fdcId';
   static const String kcal = 'kcal';
   static const String proteinG = 'proteinG';
   static const String carbG = 'carbG';

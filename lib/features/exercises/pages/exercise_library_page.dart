@@ -174,6 +174,13 @@ class _ExerciseTile extends StatelessWidget {
                       '${exercise.pattern.labelZh} · ${exercise.equipment.labelZh}',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
+                    if (exercise.nameEn.isNotEmpty) ...<Widget>[
+                      const SizedBox(height: AppSpacing.xxs),
+                      Text(
+                        exercise.nameEn,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ],
                   ],
                 ),
               ),

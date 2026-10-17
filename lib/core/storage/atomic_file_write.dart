@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:curvefree/core/storage/storage_keys.dart';
@@ -7,11 +8,16 @@ import 'package:curvefree/core/storage/storage_keys.dart';
 ///
 /// A crash while the temp file is still open leaves the previous document
 /// in place. On Android/Linux the rename replaces [target] atomically.
-Future<void> writeFileAtomically(File target, String contents) async {
+Future<void> writeFileAtomically(File target, String contents) {
+  return writeBytesAtomically(target, utf8.encode(contents));
+}
+
+/// Same replacement as [writeFileAtomically], for bytes that must stay intact.
+Future<void> writeBytesAtomically(File target, List<int> bytes) async {
   await target.parent.create(recursive: true);
-  final temp = File('${target.path}${StorageKeys.tempFileSuffix}');
+  final File temp = File('${target.path}${StorageKeys.tempFileSuffix}');
   try {
-    await temp.writeAsString(contents, flush: true);
+    await temp.writeAsBytes(bytes, flush: true);
     try {
       await temp.rename(target.path);
     } on FileSystemException {

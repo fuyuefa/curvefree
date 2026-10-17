@@ -1,0 +1,413 @@
+{
+  "attribution": "Per-100g values for local logging, not medical advice. usda rows are rounded from USDA FoodData Central public-domain entries (fdcId). estimate rows are original CurveFree approximations for common Chinese dishes (GPL-3.0-only). Open Food Facts (ODbL) is an allowed future overlay and is not bundled in v0.1.",
+  "foods": [
+    {
+      "id": "chicken_breast",
+      "nameZh": "鸡胸肉（熟）",
+      "source": "usda",
+      "kcal": 165,
+      "proteinG": 31,
+      "carbG": 0,
+      "fatG": 3.6
+    },
+    {
+      "id": "egg",
+      "nameZh": "鸡蛋",
+      "source": "usda",
+      "kcal": 155,
+      "proteinG": 13,
+      "carbG": 1.1,
+      "fatG": 11
+    },
+    {
+      "id": "beef",
+      "nameZh": "牛肉（熟）",
+      "source": "usda",
+      "kcal": 250,
+      "proteinG": 26,
+      "carbG": 0,
+      "fatG": 17
+    },
+    {
+      "id": "pork_loin",
+      "nameZh": "猪里脊（熟）",
+      "source": "usda",
+      "kcal": 242,
+      "proteinG": 27,
+      "carbG": 0,
+      "fatG": 14
+    },
+    {
+      "id": "salmon",
+      "nameZh": "三文鱼（熟）",
+      "source": "usda",
+      "kcal": 208,
+      "proteinG": 20,
+      "carbG": 0,
+      "fatG": 13
+    },
+    {
+      "id": "tofu",
+      "nameZh": "北豆腐",
+      "source": "usda",
+      "kcal": 76,
+      "proteinG": 8.1,
+      "carbG": 1.9,
+      "fatG": 4.8
+    },
+    {
+      "id": "milk",
+      "nameZh": "牛奶",
+      "source": "usda",
+      "kcal": 61,
+      "proteinG": 3.2,
+      "carbG": 4.8,
+      "fatG": 3.3
+    },
+    {
+      "id": "greek_yogurt",
+      "nameZh": "希腊酸奶",
+      "source": "usda",
+      "kcal": 59,
+      "proteinG": 10,
+      "carbG": 3.6,
+      "fatG": 0.4
+    },
+    {
+      "id": "rice_white",
+      "nameZh": "白米（熟）",
+      "source": "usda",
+      "kcal": 130,
+      "proteinG": 2.7,
+      "carbG": 28,
+      "fatG": 0.3
+    },
+    {
+      "id": "oats",
+      "nameZh": "燕麦（干）",
+      "source": "usda",
+      "kcal": 389,
+      "proteinG": 17,
+      "carbG": 66,
+      "fatG": 7
+    },
+    {
+      "id": "banana",
+      "nameZh": "香蕉",
+      "source": "usda",
+      "kcal": 89,
+      "proteinG": 1.1,
+      "carbG": 23,
+      "fatG": 0.3
+    },
+    {
+      "id": "apple",
+      "nameZh": "苹果",
+      "source": "usda",
+      "kcal": 52,
+      "proteinG": 0.3,
+      "carbG": 14,
+      "fatG": 0.2
+    },
+    {
+      "id": "broccoli",
+      "nameZh": "西兰花",
+      "source": "usda",
+      "kcal": 34,
+      "proteinG": 2.8,
+      "carbG": 7,
+      "fatG": 0.4
+    },
+    {
+      "id": "potato",
+      "nameZh": "土豆",
+      "source": "usda",
+      "kcal": 77,
+      "proteinG": 2,
+      "carbG": 17,
+      "fatG": 0.1
+    },
+    {
+      "id": "sweet_potato",
+      "nameZh": "红薯",
+      "source": "usda",
+      "kcal": 86,
+      "proteinG": 1.6,
+      "carbG": 20,
+      "fatG": 0.1
+    },
+    {
+      "id": "bread",
+      "nameZh": "白面包",
+      "source": "usda",
+      "kcal": 265,
+      "proteinG": 9,
+      "carbG": 49,
+      "fatG": 3.2
+    },
+    {
+      "id": "peanut_butter",
+      "nameZh": "花生酱",
+      "source": "usda",
+      "kcal": 588,
+      "proteinG": 25,
+      "carbG": 20,
+      "fatG": 50
+    },
+    {
+      "id": "olive_oil",
+      "nameZh": "橄榄油",
+      "source": "usda",
+      "kcal": 884,
+      "proteinG": 0,
+      "carbG": 0,
+      "fatG": 100
+    },
+    {
+      "id": "whey",
+      "nameZh": "乳清蛋白粉",
+      "source": "usda",
+      "kcal": 373,
+      "proteinG": 75,
+      "carbG": 10,
+      "fatG": 3
+    },
+    {
+      "id": "steamed_bun",
+      "nameZh": "馒头",
+      "source": "estimate",
+      "kcal": 221,
+      "proteinG": 7,
+      "carbG": 47,
+      "fatG": 1.1
+    },
+    {
+      "id": "noodles",
+      "nameZh": "面条（熟）",
+      "source": "estimate",
+      "kcal": 138,
+      "proteinG": 4.5,
+      "carbG": 25,
+      "fatG": 1.1
+    },
+    {
+      "id": "congee",
+      "nameZh": "白粥",
+      "source": "estimate",
+      "kcal": 46,
+      "proteinG": 1,
+      "carbG": 10,
+      "fatG": 0.1
+    },
+    {
+      "id": "fried_rice",
+      "nameZh": "蛋炒饭",
+      "source": "estimate",
+      "kcal": 168,
+      "proteinG": 5,
+      "carbG": 25,
+      "fatG": 5
+    },
+    {
+      "id": "dumpling",
+      "nameZh": "猪肉白菜饺",
+      "source": "estimate",
+      "kcal": 200,
+      "proteinG": 8,
+      "carbG": 22,
+      "fatG": 8
+    },
+    {
+      "id": "soy_milk",
+      "nameZh": "豆浆",
+      "source": "estimate",
+      "kcal": 54,
+      "proteinG": 3.3,
+      "carbG": 6,
+      "fatG": 1.8
+    },
+    {
+      "id": "egg_white",
+      "nameZh": "鸡蛋白",
+      "nameEn": "Egg white",
+      "source": "usda",
+      "fdcId": 172183,
+      "kcal": 52,
+      "proteinG": 10.9,
+      "carbG": 0.7,
+      "fatG": 0.2
+    },
+    {
+      "id": "shrimp",
+      "nameZh": "虾（熟）",
+      "nameEn": "Shrimp, cooked",
+      "source": "usda",
+      "fdcId": 175180,
+      "kcal": 99,
+      "proteinG": 24,
+      "carbG": 0.2,
+      "fatG": 0.3
+    },
+    {
+      "id": "cod",
+      "nameZh": "鳕鱼（熟）",
+      "nameEn": "Atlantic cod, cooked",
+      "source": "usda",
+      "fdcId": 171956,
+      "kcal": 105,
+      "proteinG": 22.8,
+      "carbG": 0,
+      "fatG": 0.9
+    },
+    {
+      "id": "chicken_thigh",
+      "nameZh": "鸡腿肉（熟，去皮）",
+      "nameEn": "Chicken thigh, roasted, skinless",
+      "source": "usda",
+      "fdcId": 172388,
+      "kcal": 179,
+      "proteinG": 24.8,
+      "carbG": 0,
+      "fatG": 8.2
+    },
+    {
+      "id": "tuna_water",
+      "nameZh": "水浸金枪鱼",
+      "nameEn": "Tuna in water, drained",
+      "source": "usda",
+      "fdcId": 334194,
+      "kcal": 90,
+      "proteinG": 19,
+      "carbG": 0.1,
+      "fatG": 0.9
+    },
+    {
+      "id": "milk_lowfat",
+      "nameZh": "低脂牛奶",
+      "nameEn": "Milk, 2%",
+      "source": "usda",
+      "fdcId": 171267,
+      "kcal": 50,
+      "proteinG": 3.3,
+      "carbG": 4.8,
+      "fatG": 2
+    },
+    {
+      "id": "brown_rice",
+      "nameZh": "糙米（熟）",
+      "nameEn": "Brown rice, cooked",
+      "source": "usda",
+      "fdcId": 169704,
+      "kcal": 123,
+      "proteinG": 2.7,
+      "carbG": 25.6,
+      "fatG": 1
+    },
+    {
+      "id": "whole_wheat_bread",
+      "nameZh": "全麦面包",
+      "nameEn": "Whole-wheat bread",
+      "source": "usda",
+      "fdcId": 172688,
+      "kcal": 252,
+      "proteinG": 12.4,
+      "carbG": 42.7,
+      "fatG": 3.5
+    },
+    {
+      "id": "edamame",
+      "nameZh": "毛豆（熟）",
+      "nameEn": "Edamame, prepared",
+      "source": "usda",
+      "fdcId": 168411,
+      "kcal": 121,
+      "proteinG": 11.9,
+      "carbG": 8.9,
+      "fatG": 5.2
+    },
+    {
+      "id": "spinach",
+      "nameZh": "菠菜",
+      "nameEn": "Spinach, raw",
+      "source": "usda",
+      "fdcId": 168462,
+      "kcal": 23,
+      "proteinG": 2.9,
+      "carbG": 3.6,
+      "fatG": 0.4
+    },
+    {
+      "id": "tomato",
+      "nameZh": "番茄",
+      "nameEn": "Tomato, raw",
+      "source": "usda",
+      "fdcId": 170457,
+      "kcal": 18,
+      "proteinG": 0.9,
+      "carbG": 3.9,
+      "fatG": 0.2
+    },
+    {
+      "id": "cucumber",
+      "nameZh": "黄瓜",
+      "nameEn": "Cucumber, with peel, raw",
+      "source": "usda",
+      "fdcId": 168409,
+      "kcal": 15,
+      "proteinG": 0.7,
+      "carbG": 3.6,
+      "fatG": 0.1
+    },
+    {
+      "id": "almonds",
+      "nameZh": "杏仁",
+      "nameEn": "Almonds",
+      "source": "usda",
+      "fdcId": 170567,
+      "kcal": 579,
+      "proteinG": 21.2,
+      "carbG": 21.6,
+      "fatG": 49.9
+    },
+    {
+      "id": "steamed_roll",
+      "nameZh": "花卷",
+      "nameEn": "Steamed roll",
+      "source": "estimate",
+      "kcal": 220,
+      "proteinG": 7,
+      "carbG": 45,
+      "fatG": 1
+    },
+    {
+      "id": "youtiao",
+      "nameZh": "油条",
+      "nameEn": "Youtiao",
+      "source": "estimate",
+      "kcal": 380,
+      "proteinG": 7,
+      "carbG": 45,
+      "fatG": 18
+    },
+    {
+      "id": "stir_greens",
+      "nameZh": "炒青菜",
+      "nameEn": "Stir-fried greens",
+      "source": "estimate",
+      "kcal": 45,
+      "proteinG": 2,
+      "carbG": 4,
+      "fatG": 2
+    },
+    {
+      "id": "tomato_egg",
+      "nameZh": "番茄炒蛋",
+      "nameEn": "Tomato and egg",
+      "source": "estimate",
+      "kcal": 90,
+      "proteinG": 5,
+      "carbG": 4,
+      "fatG": 6
+    }
+  ]
+}

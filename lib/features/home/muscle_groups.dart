@@ -1,4 +1,6 @@
 import 'package:curvefree/core/constants/app_tokens.dart';
+import 'package:curvefree/features/content/content_constants.dart';
+import 'package:curvefree/features/exercises/exercise_catalog.dart';
 import 'package:curvefree/features/home/week_progress.dart';
 import 'package:curvefree/features/plan/models/training_plan.dart';
 import 'package:curvefree/features/training/models/workout_models.dart';
@@ -56,7 +58,40 @@ Set<MuscleGroup> muscleGroupsFor({String? catalogId, required String name}) {
   if (mapped != null && mapped.isNotEmpty) {
     return mapped;
   }
+  if (catalogId != null) {
+    final Set<MuscleGroup> fromParts = _groupsForBodyParts(
+      ExerciseCatalog.bodyPartIds[catalogId],
+    );
+    if (fromParts.isNotEmpty) {
+      return fromParts;
+    }
+  }
   return muscleGroupsFromName(name);
+}
+
+Set<MuscleGroup> _groupsForBodyParts(List<String>? parts) {
+  final Set<MuscleGroup> groups = <MuscleGroup>{};
+  if (parts == null) {
+    return groups;
+  }
+  for (final String part in parts) {
+    switch (part) {
+      case BodyPartIds.chest:
+        groups.add(MuscleGroup.chest);
+      case BodyPartIds.back:
+        groups.add(MuscleGroup.back);
+      case BodyPartIds.shoulders:
+        groups.add(MuscleGroup.shoulders);
+      case BodyPartIds.legs:
+      case BodyPartIds.glutes:
+        groups.add(MuscleGroup.legs);
+      case BodyPartIds.arms:
+        groups.add(MuscleGroup.arms);
+      case BodyPartIds.core:
+        groups.add(MuscleGroup.core);
+    }
+  }
+  return groups;
 }
 
 Set<MuscleGroup> muscleGroupsFromName(String name) {

@@ -63,10 +63,14 @@ final class CatalogExercise {
     required this.nameZh,
     required this.pattern,
     required this.equipment,
+    this.nameEn = '',
+    this.sourceId = '',
   });
 
   final String id;
   final String nameZh;
+  final String nameEn;
+  final String sourceId;
   final MovementPattern pattern;
   final EquipmentKind equipment;
 

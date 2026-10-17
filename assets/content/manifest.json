@@ -1,0 +1,29 @@
+{
+  "format": 1,
+  "id": "curvefree-content",
+  "version": "0.1.0",
+  "exercises": {
+    "id": "exercises",
+    "version": "0.1.0",
+    "file": "exercises.json",
+    "license": "Unlicense",
+    "licenseUrl": "https://unlicense.org/",
+    "sourceUrl": "https://github.com/yuhonas/free-exercise-db",
+    "sha256": "6942e99bb4a4bc1e6cdd8792d08386ea63e63489ab9af8b85b85e78903447a33"
+  },
+  "foods": {
+    "id": "foods",
+    "version": "0.1.0",
+    "file": "foods.json",
+    "license": "public-domain AND GPL-3.0-only",
+    "licenseUrl": "https://fdc.nal.usda.gov/",
+    "sourceUrl": "https://fdc.nal.usda.gov/",
+    "sha256": "4f9efdede036870ab62d6a5334468c983fa2cf2bc52c14c75d1047932d827a6b"
+  },
+  "update": {
+    "service": "github-releases",
+    "owner": "fuyuefa",
+    "repo": "curvefree",
+    "manifestAsset": "content-manifest.json"
+  }
+}

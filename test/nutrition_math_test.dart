@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('foods.json parses and chicken scales to 200g', () {
-    final raw = File('assets/data/foods.json').readAsStringSync();
+    final raw = File(FoodCatalog.assetPath).readAsStringSync();
     final catalog = FoodCatalog.parse(raw);
     expect(catalog.items, isNotEmpty);
     final chicken = catalog.byId('chicken_breast');
@@ -16,7 +16,7 @@ void main() {
   });
 
   test('protein fill suggestion uses whey density', () {
-    final raw = File('assets/data/foods.json').readAsStringSync();
+    final raw = File(FoodCatalog.assetPath).readAsStringSync();
     final catalog = FoodCatalog.parse(raw);
     final whey = catalog.byId('whey')!;
     final grams = NutritionMath.gramsToFillProtein(
