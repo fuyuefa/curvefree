@@ -3,6 +3,7 @@ import 'package:curvefree/features/plan/models/training_plan.dart';
 import 'package:curvefree/features/training/data/workout_repository.dart';
 import 'package:curvefree/features/training/models/workout_models.dart';
 import 'package:curvefree/features/training/set_template.dart';
+import 'package:curvefree/features/training/unfinished_session.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final workoutRepositoryProvider = Provider<WorkoutRepository>((Ref ref) {
@@ -28,15 +29,22 @@ final class WorkoutSessionsController
     );
   }
 
-  Future<WorkoutSession> startSession() async {
-    final session = WorkoutSession.create();
-    await ref.read(workoutRepositoryProvider).upsert(session);
-    await _sync();
-    return session;
+  /// Opens the newest unfinished session, or records a new empty one.
+  Future<WorkoutSession> startSession() {
+    return _openOrCreate(WorkoutSession.create());
   }
 
+  /// Opens the newest unfinished session, or records one seeded from [planned].
+  ///
+  /// Today, the training log, and the plan page all enter here or through
+  /// [startSession]. An open session is resumed instead of duplicated.
   Future<WorkoutSession> startFromPlan(PlannedSession planned) async {
     final repo = ref.read(workoutRepositoryProvider);
+    final existing = newestUnfinishedSession(await repo.listNewestFirst());
+    if (existing != null) {
+      await _sync();
+      return existing;
+    }
     final seeded = <WorkoutExercise>[];
     for (final WorkoutExercise exercise in exercisesFromPlan(planned)) {
       final history = await repo.lastCompletedSet(exerciseName: exercise.name);
@@ -44,10 +52,15 @@ final class WorkoutSessionsController
         applyLastCompletedWeight(exercise: exercise, lastCompleted: history),
       );
     }
-    final session = WorkoutSession.create().copyWith(exercises: seeded);
-    await repo.upsert(session);
+    return _openOrCreate(WorkoutSession.create().copyWith(exercises: seeded));
+  }
+
+  Future<WorkoutSession> _openOrCreate(WorkoutSession created) async {
+    final opened = await ref
+        .read(workoutRepositoryProvider)
+        .openOrInsert(created);
     await _sync();
-    return session;
+    return opened;
   }
 
   Future<void> save(WorkoutSession session) async {

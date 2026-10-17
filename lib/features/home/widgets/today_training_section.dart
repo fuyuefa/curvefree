@@ -13,6 +13,7 @@ import 'package:curvefree/features/training/elapsed_format.dart';
 import 'package:curvefree/features/training/models/workout_models.dart';
 import 'package:curvefree/features/training/pages/session_page.dart';
 import 'package:curvefree/features/training/training_providers.dart';
+import 'package:curvefree/features/training/unfinished_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -34,7 +35,7 @@ class TodayTrainingSection extends ConsumerWidget {
     final List<WorkoutSession> loaded =
         sessions.valueOrNull ?? const <WorkoutSession>[];
     final DateTime now = DateTime.now();
-    final WorkoutSession? unfinished = _newestUnfinished(loaded);
+    final WorkoutSession? unfinished = newestUnfinishedSession(loaded);
     final PlannedSession? today = plan?.sessionForWeekday(now.weekday);
     final WeekProgress progress = summarizeWeek(
       now: now,
@@ -103,15 +104,6 @@ class TodayTrainingSection extends ConsumerWidget {
       ),
     );
   }
-}
-
-WorkoutSession? _newestUnfinished(List<WorkoutSession> sessions) {
-  for (final WorkoutSession session in sessions) {
-    if (!session.isFinished) {
-      return session;
-    }
-  }
-  return null;
 }
 
 String _resumeDetail(WorkoutSession session, DateTime now) {
