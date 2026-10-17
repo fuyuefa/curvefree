@@ -190,6 +190,27 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
+    expect(find.byKey(const Key('dialog_export_backup')), findsOneWidget);
+    expect(find.text(AppStrings.backupExportConfirmTitle), findsOneWidget);
+    expect(find.text(AppStrings.backupExportConfirmBody), findsOneWidget);
+    expect(gateway.exportCalls, 0);
+    expect(gateway.lastFileName, isNull);
+
+    await tester.tap(find.text(AppStrings.cancel));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+    expect(find.byKey(const Key('dialog_export_backup')), findsNothing);
+    expect(gateway.exportCalls, 0);
+    expect(find.text(AppStrings.backupSaved), findsNothing);
+
+    await tester.tap(find.byKey(const Key('btn_export_backup')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.byKey(const Key('btn_confirm_export')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(gateway.exportCalls, 1);
     expect(gateway.lastFileName, startsWith('curvefree-backup-'));
     expect(gateway.lastFileName, endsWith('.json'));
     expect(gateway.lastContents, contains('硬拉'));
@@ -280,12 +301,14 @@ final class _FakeBackupGateway implements BackupFileGateway {
   String? nextPick;
   String? lastFileName;
   String? lastContents;
+  int exportCalls = 0;
 
   @override
   Future<BackupExportResult> exportFile({
     required String fileName,
     required String contents,
   }) async {
+    exportCalls += 1;
     lastFileName = fileName;
     lastContents = contents;
     return BackupExportResult(savedPath: '/tmp/$fileName');

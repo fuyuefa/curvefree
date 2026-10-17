@@ -67,14 +67,10 @@ class _SessionScaffold extends ConsumerWidget {
         ),
         actions: <Widget>[
           IconButton(
+            key: const Key('btn_delete_workout'),
             tooltip: AppStrings.deleteWorkout,
-            onPressed: () async {
-              await ref
-                  .read(workoutSessionsProvider.notifier)
-                  .delete(session.id);
-              if (context.mounted) {
-                Navigator.of(context).pop();
-              }
+            onPressed: () {
+              unawaited(_deleteAfterConfirm(context, ref));
             },
             icon: const Icon(Icons.delete_outline),
           ),
@@ -131,11 +127,7 @@ class _SessionScaffold extends ConsumerWidget {
                   child: FilledButton(
                     key: const Key('btn_finish_workout'),
                     onPressed: () {
-                      unawaited(
-                        ref
-                            .read(workoutSessionsProvider.notifier)
-                            .finish(session.id),
-                      );
+                      unawaited(_finishAfterConfirm(context, ref));
                     },
                     child: const Text(AppStrings.finishThisSession),
                   ),
@@ -145,6 +137,75 @@ class _SessionScaffold extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _finishAfterConfirm(BuildContext context, WidgetRef ref) async {
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          key: const Key('dialog_finish_session'),
+          title: const Text(AppStrings.finishSessionConfirmTitle),
+          content: Text(
+            AppStrings.completedVolumeLine(
+              completedSets: session.completedSetCount,
+              volumeKg: session.volumeKg,
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              key: const Key('btn_keep_logging_sets'),
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text(AppStrings.keepLoggingSets),
+            ),
+            TextButton(
+              key: const Key('btn_confirm_finish'),
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text(AppStrings.finishSessionConfirmAction),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed != true || !context.mounted) {
+      return;
+    }
+    await ref.read(workoutSessionsProvider.notifier).finish(session.id);
+    _showSessionMessage(messenger, AppStrings.workoutCompleted);
+  }
+
+  Future<void> _deleteAfterConfirm(BuildContext context, WidgetRef ref) async {
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          key: const Key('dialog_delete_session'),
+          title: const Text(AppStrings.deleteSessionTitle),
+          content: const Text(AppStrings.deleteSessionBody),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text(AppStrings.cancel),
+            ),
+            TextButton(
+              key: const Key('btn_confirm_delete'),
+              style: TextButton.styleFrom(
+                foregroundColor: CurveColors.of(dialogContext).error,
+              ),
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text(AppStrings.deleteSessionAction),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed != true || !context.mounted) {
+      return;
+    }
+    final NavigatorState navigator = Navigator.of(context);
+    await ref.read(workoutSessionsProvider.notifier).delete(session.id);
+    navigator.pop();
   }
 
   Future<void> _addExercise(BuildContext context, WidgetRef ref) async {
@@ -176,6 +237,12 @@ class _SessionScaffold extends ConsumerWidget {
       );
     });
   }
+}
+
+void _showSessionMessage(ScaffoldMessengerState messenger, String message) {
+  messenger
+    ..clearSnackBars()
+    ..showSnackBar(SnackBar(content: Text(message)));
 }
 
 class _ExerciseCard extends ConsumerWidget {

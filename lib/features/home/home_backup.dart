@@ -8,12 +8,36 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 Future<void> exportLocalBackup(BuildContext context, WidgetRef ref) async {
-  final messenger = ScaffoldMessenger.of(context);
+  final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+  final bool? confirmed = await showDialog<bool>(
+    context: context,
+    builder: (BuildContext dialogContext) {
+      return AlertDialog(
+        key: const Key('dialog_export_backup'),
+        title: const Text(AppStrings.backupExportConfirmTitle),
+        content: const Text(AppStrings.backupExportConfirmBody),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text(AppStrings.cancel),
+          ),
+          TextButton(
+            key: const Key('btn_confirm_export'),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text(AppStrings.continueAction),
+          ),
+        ],
+      );
+    },
+  );
+  if (confirmed != true || !context.mounted) {
+    return;
+  }
   try {
-    final json = await ref
+    final String json = await ref
         .read(localStoreSnapshotProvider.notifier)
         .exportBackup();
-    final result = await ref
+    final BackupExportResult result = await ref
         .read(backupFileGatewayProvider)
         .exportFile(
           fileName: BackupFiles.stamped(DateTime.now()),
