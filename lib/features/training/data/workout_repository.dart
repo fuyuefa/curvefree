@@ -1,6 +1,8 @@
 import 'package:curvefree/core/storage/local_store.dart';
+import 'package:curvefree/core/storage/local_store_snapshot.dart';
 import 'package:curvefree/features/training/models/workout_models.dart';
 import 'package:curvefree/features/training/training_json_keys.dart';
+import 'package:curvefree/features/training/unfinished_session.dart';
 
 final class WorkoutRepository {
   const WorkoutRepository(this._store);
@@ -27,6 +29,34 @@ final class WorkoutRepository {
       }
     }
     return null;
+  }
+
+  /// Returns the newest unfinished session, or stores [created] when none is open.
+  ///
+  /// The check and the insert share one store mutation, so two start taps
+  /// cannot each observe an empty log and write a second session.
+  Future<WorkoutSession> openOrInsert(WorkoutSession created) async {
+    final LocalStoreSnapshot snapshot = await _store.mutate((
+      LocalStoreSnapshot current,
+    ) {
+      final List<WorkoutSession> sessions = current.workouts
+          .map(WorkoutSession.fromJson)
+          .toList(growable: false);
+      if (newestUnfinishedSession(sessions) != null) {
+        return current;
+      }
+      return current.copyWith(
+        workouts: <Map<String, Object?>>[created.toJson(), ...current.workouts],
+      );
+    });
+    final List<WorkoutSession> sessions = snapshot.workouts
+        .map(WorkoutSession.fromJson)
+        .toList(growable: false);
+    final WorkoutSession? opened = newestUnfinishedSession(sessions);
+    if (opened == null) {
+      throw StateError('未能打开训练课');
+    }
+    return opened;
   }
 
   Future<void> upsert(WorkoutSession session) async {
