@@ -31,3 +31,10 @@ flutter:
   assets:
     - assets/lottie/
     - assets/data/foods.json
+  fonts:
+    - family: Noto Sans SC
+      fonts:
+        - asset: assets/fonts/NotoSansSC-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/NotoSansSC-SemiBold.ttf
+          weight: 600

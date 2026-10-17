@@ -27,6 +27,10 @@
 - **Squash-merge**：合入 `main` 的提交标题必须是同一格式。GitHub 自动追加的 `(#PR)` 可以保留。标题正文使用 Conventional Commits；「第 N 刀」和没有 type 的中文叙述标题不再使用。
 - **分支名**仍是 `feat/<module>`、`fix/<topic>`，与提交 type 分开，不因本规则改名。
 
+## 引导
+
+Release 在画像已完成，或本机已有训练、饮食、计划时跳过首次引导。Debug、profile，以及 `--dart-define=FORCE_ONBOARDING=true`，每次进程启动仍进入引导，方便走查；当次完成或跳过后进入今日。组件测试用 `skipOnboarding: true` 直接进壳。
+
 ### 合格
 
 本仓库已有历史：

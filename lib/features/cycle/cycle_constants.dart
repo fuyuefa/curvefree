@@ -14,7 +14,7 @@ abstract final class CycleJsonKeys {
 abstract final class CycleCopy {
   static const String title = '经期';
   static const String meSubtitle = '月经天数 · 周期天数';
-  static const String localNote = '只存在这台手机上，用来在计划里把训练强度降一点。';
+  static const String localNote = '用来在计划里把训练强度降一点。';
   static const String periodDays = '月经天数';
   static const String cycleDays = '周期天数';
   static const String unknown = '不太清楚';

@@ -137,15 +137,30 @@ final class WorkoutSession {
     required this.endedAt,
     required this.notes,
     required this.exercises,
+    this.timerStartedAt,
   });
 
   final String id;
   final DateTime startedAt;
+
+  /// Wall clock origin. Null while the session has no exercise yet.
+  final DateTime? timerStartedAt;
   final DateTime? endedAt;
   final String notes;
   final List<WorkoutExercise> exercises;
 
   bool get isFinished => endedAt != null;
+
+  /// When the visible workout clock started. Legacy rows that already had
+  /// exercises fall back to [startedAt]. An empty draft has no origin.
+  DateTime? get timerOrigin {
+    if (exercises.isEmpty) {
+      return null;
+    }
+    return timerStartedAt ?? startedAt;
+  }
+
+  bool get isTimerRunning => !isFinished && timerOrigin != null;
 
   double get volumeKg => exercises.fold<double>(
     0,
@@ -179,6 +194,9 @@ final class WorkoutSession {
             json[TrainingJsonKeys.startedAt]?.toString() ?? '',
           ) ??
           DateTime.now(),
+      timerStartedAt: DateTime.tryParse(
+        json[TrainingJsonKeys.timerStartedAt]?.toString() ?? '',
+      ),
       endedAt: DateTime.tryParse(
         json[TrainingJsonKeys.endedAt]?.toString() ?? '',
       ),
@@ -203,6 +221,8 @@ final class WorkoutSession {
     return <String, Object?>{
       TrainingJsonKeys.id: id,
       TrainingJsonKeys.startedAt: startedAt.toIso8601String(),
+      if (timerStartedAt != null)
+        TrainingJsonKeys.timerStartedAt: timerStartedAt!.toIso8601String(),
       TrainingJsonKeys.endedAt: endedAt?.toIso8601String(),
       TrainingJsonKeys.notes: notes,
       TrainingJsonKeys.exercises: exercises
@@ -217,14 +237,36 @@ final class WorkoutSession {
     bool clearEndedAt = false,
     String? notes,
     List<WorkoutExercise>? exercises,
+    DateTime? timerStartedAt,
   }) {
+    final List<WorkoutExercise> nextExercises = exercises ?? this.exercises;
     return WorkoutSession(
       id: id,
       startedAt: startedAt ?? this.startedAt,
       endedAt: clearEndedAt ? null : (endedAt ?? this.endedAt),
       notes: notes ?? this.notes,
-      exercises: exercises ?? this.exercises,
+      exercises: nextExercises,
+      timerStartedAt: _nextTimerOrigin(
+        nextExercises: nextExercises,
+        explicit: timerStartedAt,
+      ),
     );
+  }
+
+  DateTime? _nextTimerOrigin({
+    required List<WorkoutExercise> nextExercises,
+    required DateTime? explicit,
+  }) {
+    if (nextExercises.isEmpty) {
+      return null;
+    }
+    if (explicit != null) {
+      return explicit;
+    }
+    if (exercises.isEmpty) {
+      return DateTime.now();
+    }
+    return timerStartedAt;
   }
 }
 

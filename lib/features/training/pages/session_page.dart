@@ -53,13 +53,41 @@ class SessionPage extends ConsumerWidget {
   }
 }
 
-class _SessionScaffold extends ConsumerWidget {
+class _SessionScaffold extends ConsumerStatefulWidget {
   const _SessionScaffold({required this.session});
 
   final WorkoutSession session;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_SessionScaffold> createState() => _SessionScaffoldState();
+}
+
+class _SessionScaffoldState extends ConsumerState<_SessionScaffold> {
+  bool _promptedForExercise = false;
+
+  WorkoutSession get session => widget.session;
+
+  @override
+  void initState() {
+    super.initState();
+    if (session.exercises.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _promptCatalogIfEmpty();
+      });
+    }
+  }
+
+  /// Empty start lands on the catalog. Dismissing it does not reopen.
+  void _promptCatalogIfEmpty() {
+    if (!mounted || _promptedForExercise || session.exercises.isNotEmpty) {
+      return;
+    }
+    _promptedForExercise = true;
+    unawaited(_addExercise(context, ref));
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final RestTimerState rest = ref.watch(restTimerProvider);
     final DateTime now = ref.read(restTimerProvider.notifier).clock();
     final bool showRest = rest.isRunningFor(session.id, now);
@@ -77,7 +105,9 @@ class _SessionScaffold extends ConsumerWidget {
         title: Text(
           session.isFinished
               ? AppStrings.workoutFinished
-              : AppStrings.workoutInProgress,
+              : session.isTimerRunning
+              ? AppStrings.workoutInProgress
+              : AppStrings.workoutPreparing,
         ),
         actions: <Widget>[
           IconButton(

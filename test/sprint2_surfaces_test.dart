@@ -82,6 +82,10 @@ void main() {
 
     await tester.tap(find.byKey(const Key('onb_freq_3')));
     await tester.pump();
+    final Wrap freqWrap = tester.widget<Wrap>(
+      find.byKey(const Key('onb_freq_wrap')),
+    );
+    expect(freqWrap.alignment, WrapAlignment.center);
     await tapPrimary(tester);
 
     expect(find.byKey(const Key('onb_equip')), findsOneWidget);
@@ -97,11 +101,15 @@ void main() {
     await tapPrimary(tester);
 
     expect(find.byKey(const Key('onb_prefer')), findsOneWidget);
-    expect(find.byIcon(Icons.fitness_center), findsOneWidget);
-    expect(find.byIcon(Icons.rowing), findsOneWidget);
-    expect(find.byIcon(Icons.directions_walk), findsOneWidget);
-    expect(find.byIcon(Icons.self_improvement), findsOneWidget);
-    await tester.tap(find.byKey(const Key('onb_prefer_push')));
+    expect(find.text(OnboardingCopy.preferTitle), findsOneWidget);
+    expect(find.text(OnboardingCopy.preferSkip), findsOneWidget);
+    expect(find.text('胸'), findsOneWidget);
+    expect(find.text('核心'), findsOneWidget);
+    final Wrap preferWrap = tester.widget<Wrap>(
+      find.byKey(const Key('onb_prefer_wrap')),
+    );
+    expect(preferWrap.alignment, WrapAlignment.center);
+    await tester.tap(find.byKey(const Key('onb_prefer_chest')));
     await tester.pump();
     await tapPrimary(tester);
 
@@ -119,13 +127,22 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.byKey(const Key('home_today_title')), findsOneWidget);
+    expect(find.byKey(const Key('home_local_only')), findsOneWidget);
     expect(find.byKey(const Key('nav_me')), findsOneWidget);
 
     final LocalStoreSnapshot snapshot = await store.read();
     final UserProfile profile = UserProfile.fromSettings(snapshot.settings);
     expect(profile.onboardingDone, isTrue);
     expect(profile.sex, BiologicalSex.female);
-    expect(profile.heightCm, BodyDefaults.heightCm + 1);
+    expect(
+      profile.heightCm,
+      BodyDefaults.step(
+        value: BodyDefaults.heightCm,
+        delta: BodyDefaults.heightStepCm,
+        min: BodyDefaults.minHeightCm,
+        max: BodyDefaults.maxHeightCm,
+      ),
+    );
     final Object? rawPlan = snapshot.settings[PlanJsonKeys.settingsKey];
     expect(rawPlan, isA<Map<Object?, Object?>>());
     final TrainingPlan plan = TrainingPlan.fromJson(
@@ -139,7 +156,7 @@ void main() {
     expect(plan.sessions, isNotEmpty);
   });
 
-  testWidgets('skip and existing workouts enter today without a new plan', (
+  testWidgets('skip enters today without writing a plan', (
     WidgetTester tester,
   ) async {
     final PrefsLocalStore fresh = await emptyStore();
@@ -151,7 +168,11 @@ void main() {
     final LocalStoreSnapshot skipped = await fresh.read();
     expect(UserProfile.fromSettings(skipped.settings).onboardingDone, isTrue);
     expect(skipped.settings.containsKey(PlanJsonKeys.settingsKey), isFalse);
+  });
 
+  testWidgets('debug still opens onboarding when local workouts exist', (
+    WidgetTester tester,
+  ) async {
     final PrefsLocalStore returning = await emptyStore();
     await returning.write(
       LocalStoreSnapshot.empty().copyWith(
@@ -159,8 +180,8 @@ void main() {
       ),
     );
     await pumpApp(tester, returning);
-    expect(find.byKey(const Key('onb_welcome')), findsNothing);
-    expect(find.byKey(const Key('home_today_title')), findsOneWidget);
+    expect(find.byKey(const Key('onb_welcome')), findsOneWidget);
+    expect(find.byKey(const Key('home_today_title')), findsNothing);
   });
 
   testWidgets('onboarding sex follows dark cream surfaces', (

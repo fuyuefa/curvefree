@@ -39,9 +39,12 @@ abstract final class AppLayout {
 }
 
 abstract final class AppFonts {
+  /// Bundled face. Web must not wait on a Google Fonts download for CJK.
+  static const String ui = 'Noto Sans SC';
+
   static const List<String> cjkFallback = <String>[
+    ui,
     'PingFang SC',
-    'Noto Sans SC',
     'Noto Sans CJK SC',
     'Source Han Sans SC',
     'Microsoft YaHei',
@@ -52,6 +55,9 @@ abstract final class AppStrings {
   static const String appNameZh = '曲线自由';
   static const String appNameEn = 'CurveFree';
   static const String tagline = '本机训练与饮食记录 · 完全开源';
+
+  /// Single privacy line. Shown on 今日, not repeated on every screen.
+  static const String localOnlyNotice = '数据只留在这台设备，不会上传。';
   static const String training = '训练';
   static const String nutrition = '饮食';
   static const String trainingHint = '记录组数、重量；动作库可查 Lottie';
@@ -90,6 +96,7 @@ abstract final class AppStrings {
   static const String restTimerLabel = '组间休息';
   static const String skipRest = '先不休息';
   static const String workoutBubbleLabel = '训练中';
+  static const String workoutPreparing = '准备中';
   static const String setsCountLabel = '组数';
   static const String themeAppearance = '外观';
   static const String themeSystem = '跟随系统';
@@ -107,7 +114,7 @@ abstract final class AppStrings {
   static const String cancel = '取消';
   static const String exerciseLibrary = '动作库';
   static const String pickExercise = '选择动作';
-  static const String searchExerciseHint = '搜索动作、推拉蹲…';
+  static const String searchExerciseHint = '搜索动作、部位、推拉蹲…';
   static const String customExercise = '自定义动作名';
   static const String trainingPlanTitle = '训练计划';
   static const String generatePlan = '生成计划';

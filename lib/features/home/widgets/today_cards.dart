@@ -57,6 +57,7 @@ class TodayResumeCard extends StatelessWidget {
                   style: TextStyle(
                     color: colors.primary,
                     fontWeight: FontWeight.w600,
+                    fontFamily: AppFonts.ui,
                     fontFamilyFallback: AppFonts.cjkFallback,
                   ),
                 ),

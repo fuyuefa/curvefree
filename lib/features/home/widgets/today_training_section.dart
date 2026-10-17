@@ -99,9 +99,13 @@ class TodayTrainingSection extends ConsumerWidget {
 }
 
 String _resumeDetail(WorkoutSession session, DateTime now) {
-  final String elapsed = ElapsedFormat.format(
-    now.difference(session.startedAt),
-  );
   final String volume = session.volumeKg.toStringAsFixed(0);
-  return '$elapsed · ${session.completedSetCount} ${AppStrings.setColumn} · ${AppStrings.volumeLabel} $volume ${AppStrings.weightColumn}';
+  final String counts =
+      '${session.completedSetCount} ${AppStrings.setColumn} · ${AppStrings.volumeLabel} $volume ${AppStrings.weightColumn}';
+  final DateTime? origin = session.isTimerRunning ? session.timerOrigin : null;
+  if (origin == null) {
+    return '${AppStrings.workoutPreparing} · $counts';
+  }
+  final String elapsed = ElapsedFormat.format(now.difference(origin));
+  return '$elapsed · $counts';
 }

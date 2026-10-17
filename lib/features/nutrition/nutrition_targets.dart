@@ -21,7 +21,7 @@ final class NutritionTargets {
 abstract final class NutritionTargetMath {
   static NutritionTargets resolve({
     BiologicalSex? sex,
-    int? heightCm,
+    double? heightCm,
     double? weightKg,
     DailyActivity? activity,
     TrainingGoal? goal,
@@ -57,7 +57,7 @@ abstract final class NutritionTargetMath {
 
   static int _calorieKcal({
     required BiologicalSex? sex,
-    required int heightCm,
+    required double heightCm,
     required double weightKg,
     required DailyActivity? activity,
     required TrainingGoal? goal,

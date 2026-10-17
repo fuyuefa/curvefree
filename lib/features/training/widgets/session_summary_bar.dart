@@ -44,7 +44,7 @@ class SessionSummaryBar extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.xxs),
                 ElapsedClock(
-                  startedAt: session.startedAt,
+                  startedAt: session.timerOrigin,
                   endedAt: session.endedAt,
                 ),
               ],
@@ -94,7 +94,7 @@ class ElapsedClock extends StatefulWidget {
     required this.endedAt,
   });
 
-  final DateTime startedAt;
+  final DateTime? startedAt;
   final DateTime? endedAt;
 
   @override
@@ -104,25 +104,31 @@ class ElapsedClock extends StatefulWidget {
 class _ElapsedClockState extends State<ElapsedClock> {
   Timer? _timer;
 
+  bool get _running => widget.startedAt != null && widget.endedAt == null;
+
   @override
   void initState() {
     super.initState();
-    if (widget.endedAt == null) {
-      _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
-        if (mounted) {
-          setState(() {});
-        }
-      });
-    }
+    _syncTicker();
   }
 
   @override
   void didUpdateWidget(ElapsedClock oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.endedAt != null) {
+    _syncTicker();
+  }
+
+  void _syncTicker() {
+    if (!_running) {
       _timer?.cancel();
       _timer = null;
+      return;
     }
+    _timer ??= Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
   }
 
   @override
@@ -133,9 +139,12 @@ class _ElapsedClockState extends State<ElapsedClock> {
 
   @override
   Widget build(BuildContext context) {
-    final DateTime end = widget.endedAt ?? DateTime.now();
+    final DateTime? origin = widget.startedAt;
+    final Duration elapsed = origin == null
+        ? Duration.zero
+        : (widget.endedAt ?? DateTime.now()).difference(origin);
     return Text(
-      ElapsedFormat.format(end.difference(widget.startedAt)),
+      ElapsedFormat.format(elapsed),
       style: Theme.of(context).textTheme.titleMedium,
     );
   }

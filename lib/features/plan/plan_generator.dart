@@ -16,7 +16,7 @@ abstract final class PlanGenerator {
     required int daysPerWeek,
     required EquipmentProfile equipment,
     BiologicalSex? sex,
-    int? heightCm,
+    double? heightCm,
     double? weightKg,
     TrainingExperience? experience,
     List<TrainingPreference> preferences = const <TrainingPreference>[],
@@ -296,8 +296,7 @@ abstract final class PlanGenerator {
     if (bias.isEmpty) {
       return false;
     }
-    final TrainingPreference? preference = preferenceForCatalog(catalogId);
-    return preference != null && bias.contains(preference);
+    return preferencesForCatalog(catalogId).any(bias.contains);
   }
 
   static List<PlannedSession> _coverPreferences({

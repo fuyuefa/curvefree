@@ -4,13 +4,51 @@ abstract final class OnboardingLimits {
 }
 
 abstract final class BodyDefaults {
-  static const int heightCm = 165;
+  static const double heightCm = 165;
   static const double weightKg = 55;
-  static const int minHeightCm = 140;
-  static const int maxHeightCm = 210;
+  static const double minHeightCm = 140;
+  static const double maxHeightCm = 210;
   static const double minWeightKg = 35;
   static const double maxWeightKg = 180;
-  static const double weightStepKg = 0.5;
+
+  /// One tenth of the unit: 0.1 cm and 0.1 kg.
+  static const double heightStepCm = 0.1;
+  static const double weightStepKg = 0.1;
+  static const int metricFractionDigits = 1;
+
+  static double step({
+    required double value,
+    required double delta,
+    required double min,
+    required double max,
+  }) {
+    final int scale = _decimalScale(metricFractionDigits);
+    final double next = ((value + delta) * scale).round() / scale;
+    if (next < min) {
+      return min;
+    }
+    if (next > max) {
+      return max;
+    }
+    return next;
+  }
+
+  static String format(double value) {
+    final int scale = _decimalScale(metricFractionDigits);
+    final double rounded = (value * scale).round() / scale;
+    if (rounded == rounded.roundToDouble()) {
+      return rounded.round().toString();
+    }
+    return rounded.toStringAsFixed(metricFractionDigits);
+  }
+}
+
+int _decimalScale(int digits) {
+  int scale = 1;
+  for (int i = 0; i < digits; i++) {
+    scale *= 10;
+  }
+  return scale;
 }
 
 abstract final class OnboardingJsonKeys {
@@ -27,7 +65,7 @@ abstract final class OnboardingJsonKeys {
 }
 
 abstract final class OnboardingCopy {
-  static const String welcomeBody = '训练和饮食，都记在这台手机上。';
+  static const String welcomeBody = '训练和饮食，从这里开始记。';
   static const String welcomePlan = '先做一份计划，再开始记。';
   static const String start = '开始';
   static const String skipExisting = '已有记录，直接进入';
@@ -39,7 +77,7 @@ abstract final class OnboardingCopy {
   static const String sexBody = '只用来调整计划里的训练与恢复建议。';
 
   static const String bodyTitle = '身高和体重';
-  static const String bodyBody = '用来估算计划里的训练量，只存在这台手机上。';
+  static const String bodyBody = '用来估算计划里的训练量。';
   static const String height = '身高';
   static const String weight = '体重';
   static const String centimeter = '厘米';
@@ -63,12 +101,9 @@ abstract final class OnboardingCopy {
   static const String expMid = '练过一阵';
   static const String expAdvanced = '已经很熟';
 
-  static const String preferTitle = '更想练哪里';
-  static const String preferBody = '先用图标占位，可以多选。';
-  static const String preferPush = '推';
-  static const String preferPull = '拉';
-  static const String preferLegs = '腿';
-  static const String preferCore = '核心';
+  static const String preferTitle = '有没有特别想练的部位？';
+  static const String preferBody = '可跳过';
+  static const String preferSkip = '跳过这题';
 
   static const String activityTitle = '平时活动多吗';
   static const String activityBody = '用来辅助饮食热量。训练计划仍以力量为主。';
@@ -78,7 +113,7 @@ abstract final class OnboardingCopy {
   static const String activityActive = '比较活跃';
 
   static const String doneTitle = '计划已在这台手机上';
-  static const String doneBody = '可以之后再改计划，也可以直接开练。数据不会上传。';
+  static const String doneBody = '可以之后再改计划，也可以直接开练。';
 
   static String progressLabel(int index) =>
       '$index / ${OnboardingLimits.collectCount}';

@@ -65,7 +65,7 @@ final class OnboardingDraft {
   });
 
   final BiologicalSex? sex;
-  final int heightCm;
+  final double heightCm;
   final double weightKg;
   final TrainingGoal? goal;
   final int? daysPerWeek;
@@ -83,7 +83,7 @@ final class OnboardingDraft {
       OnboardingStep.freq => daysPerWeek != null,
       OnboardingStep.equip => equipment != null,
       OnboardingStep.experience => experience != null,
-      OnboardingStep.prefer => preferences.isNotEmpty,
+      OnboardingStep.prefer => true,
       OnboardingStep.activity => activity != null,
     };
   }
@@ -108,7 +108,6 @@ final class OnboardingDraft {
         equipment == null ||
         experience == null ||
         activity == null ||
-        preferences.isEmpty ||
         !_bodyInRange) {
       throw StateError('onboarding draft is incomplete');
     }
@@ -132,7 +131,7 @@ final class OnboardingDraft {
 
   OnboardingDraft copyWith({
     BiologicalSex? sex,
-    int? heightCm,
+    double? heightCm,
     double? weightKg,
     TrainingGoal? goal,
     int? daysPerWeek,

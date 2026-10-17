@@ -1,9 +1,11 @@
 import 'package:curvefree/core/storage/local_store.dart';
 import 'package:curvefree/core/storage/local_store_providers.dart';
 import 'package:curvefree/core/storage/local_store_snapshot.dart';
+import 'package:curvefree/features/onboarding/models/onboarding_choices.dart';
 import 'package:curvefree/features/onboarding/models/user_profile.dart';
 import 'package:curvefree/features/onboarding/onboarding_constants.dart';
 import 'package:curvefree/features/onboarding/onboarding_draft.dart';
+import 'package:curvefree/features/onboarding/onboarding_entry.dart';
 import 'package:curvefree/features/onboarding/widgets/onboarding_chrome.dart';
 import 'package:curvefree/features/onboarding/widgets/onboarding_steps.dart';
 import 'package:curvefree/features/plan/plan_constants.dart';
@@ -43,6 +45,12 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
               onPressed: _saving ? null : _skip,
               child: const Text(OnboardingCopy.skipExisting),
             )
+          : _step == OnboardingStep.prefer
+          ? TextButton(
+              key: const Key('onb_prefer_skip'),
+              onPressed: _saving ? null : _skipPrefer,
+              child: const Text(OnboardingCopy.preferSkip),
+            )
           : null,
       body: OnboardingStepBody(
         step: _step,
@@ -72,6 +80,17 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
     return _persist(UserProfile.skipped(), includePlan: false);
   }
 
+  void _skipPrefer() {
+    final OnboardingStep? next = _step.forward;
+    if (next == null) {
+      return;
+    }
+    setState(() {
+      _draft = _draft.copyWith(preferences: <TrainingPreference>{});
+      _step = next;
+    });
+  }
+
   Future<void> _enterWithPlan() {
     return _persist(_draft.toCompletedProfile(), includePlan: true);
   }
@@ -83,6 +102,8 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
     setState(() => _saving = true);
     try {
       final LocalStore store = ref.read(localStoreProvider);
+      final snapshotNotifier = ref.read(localStoreSnapshotProvider.notifier);
+      final dismissed = ref.read(onboardingDismissedProvider.notifier);
       await store.mutate((LocalStoreSnapshot current) {
         final Map<String, Object?> settings = Map<String, Object?>.from(
           current.settings,
@@ -106,10 +127,8 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
         }
         return current.copyWith(settings: settings);
       });
-      if (!mounted) {
-        return;
-      }
-      await ref.read(localStoreSnapshotProvider.notifier).reload();
+      await snapshotNotifier.reload();
+      dismissed.state = true;
     } finally {
       if (mounted) {
         setState(() => _saving = false);

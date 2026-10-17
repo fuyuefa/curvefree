@@ -17,10 +17,16 @@ class HomePage extends StatelessWidget {
             AppSpacing.md,
             AppSpacing.lg,
           ),
-          children: const <Widget>[
-            TodayHeader(),
-            SizedBox(height: AppSpacing.sm),
-            TodayTrainingSection(),
+          children: <Widget>[
+            const TodayHeader(),
+            const SizedBox(height: AppSpacing.xxs),
+            Text(
+              AppStrings.localOnlyNotice,
+              key: const Key('home_local_only'),
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            const TodayTrainingSection(),
           ],
         ),
       ),

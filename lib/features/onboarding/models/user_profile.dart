@@ -22,7 +22,7 @@ final class UserProfile {
 
   final bool onboardingDone;
   final BiologicalSex? sex;
-  final int? heightCm;
+  final double? heightCm;
   final double? weightKg;
   final TrainingGoal? goal;
   final int? daysPerWeek;
@@ -64,7 +64,7 @@ final class UserProfile {
     return UserProfile(
       onboardingDone: json[OnboardingJsonKeys.onboardingDone] == true,
       sex: BiologicalSex.fromWire(json[OnboardingJsonKeys.sex]?.toString()),
-      heightCm: _asInt(json[OnboardingJsonKeys.heightCm]),
+      heightCm: _asDouble(json[OnboardingJsonKeys.heightCm]),
       weightKg: _asDouble(json[OnboardingJsonKeys.weightKg]),
       goal: _goalOrNull(json[OnboardingJsonKeys.goal]?.toString()),
       daysPerWeek: _asInt(json[OnboardingJsonKeys.daysPerWeek]),

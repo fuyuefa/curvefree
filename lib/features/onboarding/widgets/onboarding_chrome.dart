@@ -194,6 +194,34 @@ class OnboardingSelectCard extends StatelessWidget {
   }
 }
 
+/// One centered row when the chips fit, otherwise a centered wrap.
+class CenteredChipGroup extends StatelessWidget {
+  const CenteredChipGroup({
+    super.key,
+    required this.groupKey,
+    required this.chips,
+  });
+
+  final Key groupKey;
+  final List<Widget> chips;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: Wrap(
+        key: groupKey,
+        alignment: WrapAlignment.center,
+        runAlignment: WrapAlignment.center,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: AppSpacing.xs,
+        runSpacing: AppSpacing.xs,
+        children: chips,
+      ),
+    );
+  }
+}
+
 class OnboardingStepHeader extends StatelessWidget {
   const OnboardingStepHeader({
     super.key,
