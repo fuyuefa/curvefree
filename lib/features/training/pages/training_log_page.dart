@@ -2,12 +2,11 @@ import 'package:curvefree/core/constants/app_tokens.dart';
 import 'package:curvefree/features/plan/pages/plan_page.dart';
 import 'package:curvefree/features/exercises/pages/exercise_library_page.dart';
 import 'package:curvefree/features/training/models/workout_models.dart';
+import 'package:curvefree/features/training/session_routes.dart';
 import 'package:curvefree/features/training/training_providers.dart';
 import 'package:curvefree/features/training/widgets/workout_list_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import 'session_page.dart';
 
 class TrainingLogPage extends ConsumerWidget {
   const TrainingLogPage({super.key});
@@ -75,11 +74,7 @@ class TrainingLogPage extends ConsumerWidget {
               return WorkoutListTile(
                 session: session,
                 onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => SessionPage(sessionId: session.id),
-                    ),
-                  );
+                  Navigator.of(context).push(sessionPageRoute(session.id));
                 },
               );
             },
@@ -96,10 +91,6 @@ class TrainingLogPage extends ConsumerWidget {
     if (!context.mounted) {
       return;
     }
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => SessionPage(sessionId: session.id),
-      ),
-    );
+    await Navigator.of(context).push(sessionPageRoute(session.id));
   }
 }

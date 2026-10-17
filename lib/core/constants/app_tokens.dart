@@ -87,6 +87,9 @@ abstract final class AppStrings {
   static const String statCompletion = '完成率';
   static const String muscleGroupsTitle = '肌群';
   static const String elapsedLabel = '用时';
+  static const String restTimerLabel = '组间休息';
+  static const String skipRest = '先不休息';
+  static const String workoutBubbleLabel = '训练中';
   static const String setsCountLabel = '组数';
   static const String themeAppearance = '外观';
   static const String themeSystem = '跟随系统';

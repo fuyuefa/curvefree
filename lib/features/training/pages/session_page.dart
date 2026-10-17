@@ -7,8 +7,10 @@ import 'package:curvefree/features/exercises/exercise_catalog.dart';
 import 'package:curvefree/features/exercises/models/catalog_exercise.dart';
 import 'package:curvefree/features/exercises/pages/exercise_library_page.dart';
 import 'package:curvefree/features/training/models/workout_models.dart';
+import 'package:curvefree/features/training/rest_timer.dart';
 import 'package:curvefree/features/training/set_template.dart';
 import 'package:curvefree/features/training/training_providers.dart';
+import 'package:curvefree/features/training/widgets/rest_timer_bar.dart';
 import 'package:curvefree/features/training/widgets/session_set_row.dart';
 import 'package:curvefree/features/training/widgets/session_summary_bar.dart';
 import 'package:flutter/material.dart';
@@ -58,6 +60,18 @@ class _SessionScaffold extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final RestTimerState rest = ref.watch(restTimerProvider);
+    final DateTime now = ref.read(restTimerProvider.notifier).clock();
+    final bool showRest = rest.isRunningFor(session.id, now);
+    String? restExerciseName;
+    if (showRest) {
+      for (final WorkoutExercise exercise in session.exercises) {
+        if (exercise.id == rest.exerciseId) {
+          restExerciseName = exercise.name;
+          break;
+        }
+      }
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -112,6 +126,19 @@ class _SessionScaffold extends ConsumerWidget {
               ],
             ),
           ),
+          if (showRest && !session.isFinished)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                0,
+                AppSpacing.md,
+                AppSpacing.xs,
+              ),
+              child: RestTimerBar(
+                sessionId: session.id,
+                exerciseName: restExerciseName,
+              ),
+            ),
           if (!session.isFinished)
             SafeArea(
               top: false,
@@ -172,6 +199,7 @@ class _SessionScaffold extends ConsumerWidget {
       return;
     }
     await ref.read(workoutSessionsProvider.notifier).finish(session.id);
+    ref.read(restTimerProvider.notifier).clearSession(session.id);
     _showSessionMessage(messenger, AppStrings.workoutCompleted);
   }
 
@@ -204,6 +232,7 @@ class _SessionScaffold extends ConsumerWidget {
       return;
     }
     final NavigatorState navigator = Navigator.of(context);
+    ref.read(restTimerProvider.notifier).clearSession(session.id);
     await ref.read(workoutSessionsProvider.notifier).delete(session.id);
     navigator.pop();
   }
@@ -342,14 +371,20 @@ class _ExerciseCard extends ConsumerWidget {
                 unawaited(_patch(ref, exercise.sets[i].copyWith(reps: value)));
               },
               onToggleCompleted: () {
+                final WorkoutSet current = exercise.sets[i];
+                final bool markCompleted = !current.completed;
                 unawaited(
-                  _patch(
-                    ref,
-                    exercise.sets[i].copyWith(
-                      completed: !exercise.sets[i].completed,
-                    ),
-                  ),
+                  _patch(ref, current.copyWith(completed: markCompleted)),
                 );
+                if (markCompleted && !session.isFinished) {
+                  ref
+                      .read(restTimerProvider.notifier)
+                      .restart(
+                        sessionId: session.id,
+                        exerciseId: exercise.id,
+                        setId: current.id,
+                      );
+                }
               },
             ),
           SizedBox(
