@@ -54,7 +54,7 @@ class StorageStatusCard extends StatelessWidget {
           if (ready && errorMessage == null) ...[
             const SizedBox(height: AppSpacing.xxs),
             Text(
-              'schema v$schemaVersion · 无云同步',
+              'schema v$schemaVersion',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           ],

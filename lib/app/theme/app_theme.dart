@@ -24,6 +24,7 @@ ThemeData buildCurveFreeTheme(Brightness brightness) {
       fontWeight: weight,
       color: color,
       height: height,
+      fontFamily: AppFonts.ui,
       fontFamilyFallback: AppFonts.cjkFallback,
     );
   }
@@ -78,6 +79,7 @@ ThemeData buildCurveFreeTheme(Brightness brightness) {
   return ThemeData(
     useMaterial3: true,
     brightness: brightness,
+    fontFamily: AppFonts.ui,
     colorScheme: scheme,
     scaffoldBackgroundColor: palette.screen,
     canvasColor: palette.screen,

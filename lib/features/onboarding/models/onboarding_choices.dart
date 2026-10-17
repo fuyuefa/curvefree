@@ -36,16 +36,39 @@ enum TrainingExperience {
   }
 }
 
-/// Placeholder focus areas. Icons stand in until exercise art exists.
+/// Body parts a person can prefer. Order is the chip order.
+///
+/// Stored as [wireName]. Older movement-pattern ids map here:
+/// `push` → chest, `pull` → back, `legs` → legs, `core` → core.
+/// Any other legacy id is ignored.
 enum TrainingPreference {
-  push,
-  pull,
-  legs,
-  core;
+  chest('胸'),
+  back('背'),
+  shoulders('肩'),
+  legs('腿'),
+  glutes('臀'),
+  arms('手臂'),
+  core('核心');
+
+  const TrainingPreference(this.labelZh);
+
+  final String labelZh;
 
   String get wireName => name;
 
   static TrainingPreference? fromWire(String? raw) {
+    switch (raw) {
+      case 'push':
+        return TrainingPreference.chest;
+      case 'pull':
+        return TrainingPreference.back;
+      case 'legs':
+        return TrainingPreference.legs;
+      case 'core':
+        return TrainingPreference.core;
+      default:
+        break;
+    }
     for (final TrainingPreference value in TrainingPreference.values) {
       if (value.name == raw) {
         return value;

@@ -118,23 +118,27 @@ class _BodyStep extends StatelessWidget {
         ),
         _QuantityStepper(
           label: OnboardingCopy.height,
-          value: '${draft.heightCm}',
+          value: BodyDefaults.format(draft.heightCm),
           unit: OnboardingCopy.centimeter,
           minusKey: const Key('onb_height_minus'),
           plusKey: const Key('onb_height_plus'),
           onMinus: () => onChanged(
             draft.copyWith(
-              heightCm: (draft.heightCm - 1).clamp(
-                BodyDefaults.minHeightCm,
-                BodyDefaults.maxHeightCm,
+              heightCm: BodyDefaults.step(
+                value: draft.heightCm,
+                delta: -BodyDefaults.heightStepCm,
+                min: BodyDefaults.minHeightCm,
+                max: BodyDefaults.maxHeightCm,
               ),
             ),
           ),
           onPlus: () => onChanged(
             draft.copyWith(
-              heightCm: (draft.heightCm + 1).clamp(
-                BodyDefaults.minHeightCm,
-                BodyDefaults.maxHeightCm,
+              heightCm: BodyDefaults.step(
+                value: draft.heightCm,
+                delta: BodyDefaults.heightStepCm,
+                min: BodyDefaults.minHeightCm,
+                max: BodyDefaults.maxHeightCm,
               ),
             ),
           ),
@@ -142,21 +146,27 @@ class _BodyStep extends StatelessWidget {
         const SizedBox(height: AppSpacing.sm),
         _QuantityStepper(
           label: OnboardingCopy.weight,
-          value: _formatKg(draft.weightKg),
+          value: BodyDefaults.format(draft.weightKg),
           unit: OnboardingCopy.kilogram,
           minusKey: const Key('onb_weight_minus'),
           plusKey: const Key('onb_weight_plus'),
           onMinus: () => onChanged(
             draft.copyWith(
-              weightKg: _clampWeight(
-                draft.weightKg - BodyDefaults.weightStepKg,
+              weightKg: BodyDefaults.step(
+                value: draft.weightKg,
+                delta: -BodyDefaults.weightStepKg,
+                min: BodyDefaults.minWeightKg,
+                max: BodyDefaults.maxWeightKg,
               ),
             ),
           ),
           onPlus: () => onChanged(
             draft.copyWith(
-              weightKg: _clampWeight(
-                draft.weightKg + BodyDefaults.weightStepKg,
+              weightKg: BodyDefaults.step(
+                value: draft.weightKg,
+                delta: BodyDefaults.weightStepKg,
+                min: BodyDefaults.minWeightKg,
+                max: BodyDefaults.maxWeightKg,
               ),
             ),
           ),
@@ -209,39 +219,21 @@ class _FreqStep extends StatelessWidget {
           title: OnboardingCopy.freqTitle,
           body: OnboardingCopy.freqBody,
         ),
-        Wrap(
-          spacing: AppSpacing.xs,
-          runSpacing: AppSpacing.xs,
-          children: <Widget>[
+        CenteredChipGroup(
+          groupKey: const Key('onb_freq_wrap'),
+          chips: <Widget>[
             for (
               int day = PlanLimits.minDaysPerWeek;
               day <= PlanLimits.maxDaysPerWeek;
               day++
             )
-              ChoiceChip(
-                key: Key('onb_freq_$day'),
-                label: Text('$day 天'),
+              _metricChip(
+                chipKey: Key('onb_freq_$day'),
+                label: '$day 天',
                 selected: draft.daysPerWeek == day,
+                colors: colors,
                 onSelected: (bool _) =>
                     onChanged(draft.copyWith(daysPerWeek: day)),
-                showCheckmark: false,
-                backgroundColor: colors.muted,
-                selectedColor: colors.primarySoft,
-                labelStyle: TextStyle(
-                  color: draft.daysPerWeek == day
-                      ? colors.primary
-                      : colors.textSecondary,
-                  fontWeight: draft.daysPerWeek == day
-                      ? FontWeight.w600
-                      : FontWeight.w400,
-                  fontFamilyFallback: AppFonts.cjkFallback,
-                ),
-                side: BorderSide(
-                  color: draft.daysPerWeek == day
-                      ? colors.primary
-                      : colors.border,
-                ),
-                shape: const StadiumBorder(),
               ),
           ],
         ),
@@ -367,20 +359,17 @@ class _PreferStep extends StatelessWidget {
           title: OnboardingCopy.preferTitle,
           body: OnboardingCopy.preferBody,
         ),
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: AppSpacing.sm,
-          crossAxisSpacing: AppSpacing.sm,
-          childAspectRatio: 1.35,
-          children: <Widget>[
+        CenteredChipGroup(
+          groupKey: const Key('onb_prefer_wrap'),
+          chips: <Widget>[
             for (final TrainingPreference preference
                 in TrainingPreference.values)
-              _PreferTile(
-                preference: preference,
+              _metricChip(
+                chipKey: Key('onb_prefer_${preference.wireName}'),
+                label: preference.labelZh,
                 selected: draft.preferences.contains(preference),
-                onTap: () {
+                colors: CurveColors.of(context),
+                onSelected: (bool _) {
                   final Set<TrainingPreference> next =
                       Set<TrainingPreference>.from(draft.preferences);
                   if (!next.add(preference)) {
@@ -392,56 +381,6 @@ class _PreferStep extends StatelessWidget {
           ],
         ),
       ],
-    );
-  }
-}
-
-class _PreferTile extends StatelessWidget {
-  const _PreferTile({
-    required this.preference,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final TrainingPreference preference;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final CurveColors colors = CurveColors.of(context);
-    return Material(
-      color: selected ? colors.primarySoft : colors.card,
-      borderRadius: BorderRadius.circular(AppRadii.card),
-      child: InkWell(
-        key: Key('onb_prefer_${preference.wireName}'),
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadii.card),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppRadii.card),
-            border: Border.all(
-              color: selected ? colors.primary : colors.border,
-              width: selected ? 1.5 : 1,
-            ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Icon(
-                _preferenceIcon(preference),
-                color: selected ? colors.primary : colors.textSecondary,
-                size: 28,
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                _preferenceLabel(preference),
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
@@ -581,33 +520,28 @@ class _QuantityStepper extends StatelessWidget {
   }
 }
 
-IconData _preferenceIcon(TrainingPreference preference) {
-  return switch (preference) {
-    TrainingPreference.push => Icons.fitness_center,
-    TrainingPreference.pull => Icons.rowing,
-    TrainingPreference.legs => Icons.directions_walk,
-    TrainingPreference.core => Icons.self_improvement,
-  };
-}
-
-String _preferenceLabel(TrainingPreference preference) {
-  return switch (preference) {
-    TrainingPreference.push => OnboardingCopy.preferPush,
-    TrainingPreference.pull => OnboardingCopy.preferPull,
-    TrainingPreference.legs => OnboardingCopy.preferLegs,
-    TrainingPreference.core => OnboardingCopy.preferCore,
-  };
-}
-
-double _clampWeight(double value) {
-  return value
-      .clamp(BodyDefaults.minWeightKg, BodyDefaults.maxWeightKg)
-      .toDouble();
-}
-
-String _formatKg(double value) {
-  if (value == value.roundToDouble()) {
-    return value.round().toString();
-  }
-  return value.toStringAsFixed(1);
+ChoiceChip _metricChip({
+  required Key chipKey,
+  required String label,
+  required bool selected,
+  required CurveColors colors,
+  required ValueChanged<bool> onSelected,
+}) {
+  return ChoiceChip(
+    key: chipKey,
+    label: Text(label),
+    selected: selected,
+    onSelected: onSelected,
+    showCheckmark: false,
+    backgroundColor: colors.muted,
+    selectedColor: colors.primarySoft,
+    labelStyle: TextStyle(
+      color: selected ? colors.primary : colors.textSecondary,
+      fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+      fontFamily: AppFonts.ui,
+      fontFamilyFallback: AppFonts.cjkFallback,
+    ),
+    side: BorderSide(color: selected ? colors.primary : colors.border),
+    shape: const StadiumBorder(),
+  );
 }

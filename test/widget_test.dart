@@ -76,14 +76,13 @@ void main() {
     await tester.tap(find.byKey(const Key('btn_start_workout')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 200));
-
-    expect(find.byKey(const Key('btn_add_exercise')), findsOneWidget);
-    expect(find.byKey(const Key('session_summary')), findsOneWidget);
-    expect(find.byKey(const Key('btn_finish_workout')), findsOneWidget);
-    expect(find.text(AppStrings.finishThisSession), findsOneWidget);
-    await tester.tap(find.byKey(const Key('btn_add_exercise')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text(AppStrings.pickExercise), findsOneWidget);
+    expect(find.byKey(const Key('btn_custom_exercise')), findsOneWidget);
+    expect(find.byKey(const Key('workout_float_bubble')), findsNothing);
+    expect(find.text(AppStrings.workoutPreparing), findsOneWidget);
     await tester.tap(find.text('杠铃卧推'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
@@ -152,7 +151,9 @@ void main() {
       ),
     );
 
-    await tester.pumpWidget(CurveFreeApp(localStore: store));
+    await tester.pumpWidget(
+      CurveFreeApp(localStore: store, skipOnboarding: true),
+    );
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.byKey(const Key('home_resume_workout')), findsOneWidget);

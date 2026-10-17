@@ -31,7 +31,7 @@ void main() {
     await tester.pumpWidget(
       RepaintBoundary(
         key: const Key('capture_root'),
-        child: CurveFreeApp(localStore: store),
+        child: CurveFreeApp(localStore: store, skipOnboarding: true),
       ),
     );
     await tester.pump();

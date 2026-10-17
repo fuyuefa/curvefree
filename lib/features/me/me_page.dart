@@ -151,6 +151,7 @@ class _ThemeChip extends StatelessWidget {
       labelStyle: TextStyle(
         color: selected ? colors.primary : colors.textSecondary,
         fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+        fontFamily: AppFonts.ui,
         fontFamilyFallback: AppFonts.cjkFallback,
       ),
       side: BorderSide(color: selected ? colors.primary : colors.border),

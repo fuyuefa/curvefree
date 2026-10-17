@@ -19,7 +19,9 @@ class WorkoutListTile extends StatelessWidget {
     final dateLabel = DateFormat('yyyy-MM-dd HH:mm').format(session.startedAt);
     final status = session.isFinished
         ? AppStrings.workoutFinished
-        : AppStrings.workoutInProgress;
+        : session.isTimerRunning
+        ? AppStrings.workoutInProgress
+        : AppStrings.workoutPreparing;
     final volume = session.volumeKg.toStringAsFixed(0);
 
     final CurveColors colors = CurveColors.of(context);

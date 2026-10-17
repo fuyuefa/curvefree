@@ -69,8 +69,9 @@ class _WorkoutFloatBubbleState extends ConsumerState<WorkoutFloatBubble> {
       topPageRouteName: navigation.topPageRouteName,
       safeBottom: MediaQuery.paddingOf(context).bottom,
     );
+    final DateTime origin = unfinished.timerOrigin ?? unfinished.startedAt;
     final String elapsed = ElapsedFormat.format(
-      DateTime.now().difference(unfinished.startedAt),
+      DateTime.now().difference(origin),
     );
     final String label = '${AppStrings.workoutBubbleLabel} $elapsed';
     return Positioned(

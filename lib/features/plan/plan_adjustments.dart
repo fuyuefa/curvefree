@@ -1,6 +1,5 @@
 import 'package:curvefree/features/cycle/models/cycle_profile.dart';
 import 'package:curvefree/features/exercises/exercise_catalog.dart';
-import 'package:curvefree/features/exercises/models/catalog_exercise.dart';
 import 'package:curvefree/features/onboarding/models/onboarding_choices.dart';
 import 'package:curvefree/features/plan/plan_constants.dart';
 
@@ -14,7 +13,7 @@ final class VolumeAdjustment {
   static const VolumeAdjustment none = VolumeAdjustment(0);
 
   static VolumeAdjustment resolve({
-    int? heightCm,
+    double? heightCm,
     double? weightKg,
     TrainingExperience? experience,
     DailyActivity? activity,
@@ -63,7 +62,7 @@ int clampPlanSets(int sets) {
   return sets;
 }
 
-double? bodyMassIndex({int? heightCm, double? weightKg}) {
+double? bodyMassIndex({double? heightCm, double? weightKg}) {
   if (heightCm == null || weightKg == null || heightCm <= 0 || weightKg <= 0) {
     return null;
   }
@@ -71,7 +70,7 @@ double? bodyMassIndex({int? heightCm, double? weightKg}) {
   return weightKg / (meters * meters);
 }
 
-/// Empty, or every pattern selected, carries no extra volume signal.
+/// Empty, or every body part selected, carries no extra volume signal.
 Set<TrainingPreference> preferenceBias(List<TrainingPreference> preferences) {
   if (preferences.isEmpty) {
     return const <TrainingPreference>{};
@@ -83,26 +82,19 @@ Set<TrainingPreference> preferenceBias(List<TrainingPreference> preferences) {
   return unique;
 }
 
-TrainingPreference? preferenceForPattern(MovementPattern pattern) {
-  switch (pattern) {
-    case MovementPattern.push:
-      return TrainingPreference.push;
-    case MovementPattern.pull:
-      return TrainingPreference.pull;
-    case MovementPattern.squat:
-    case MovementPattern.hinge:
-      return TrainingPreference.legs;
-    case MovementPattern.core:
-      return TrainingPreference.core;
+Set<TrainingPreference> preferencesForCatalog(String catalogId) {
+  final List<String>? ids = ExerciseCatalog.bodyPartIds[catalogId];
+  if (ids == null) {
+    return const <TrainingPreference>{};
   }
-}
-
-TrainingPreference? preferenceForCatalog(String catalogId) {
-  final CatalogExercise? exercise = ExerciseCatalog.byId(catalogId);
-  if (exercise == null) {
-    return null;
+  final Set<TrainingPreference> parts = <TrainingPreference>{};
+  for (final String id in ids) {
+    final TrainingPreference? part = TrainingPreference.fromWire(id);
+    if (part != null) {
+      parts.add(part);
+    }
   }
-  return preferenceForPattern(exercise.pattern);
+  return parts;
 }
 
 /// Catalog ids to add when a biased pattern is missing from the whole week.
@@ -118,18 +110,17 @@ List<String> missingPreferenceCatalogIds({
   final Set<TrainingPreference> present = <TrainingPreference>{};
   final Set<String> presentIds = presentCatalogIds.toSet();
   for (final String catalogId in presentIds) {
-    final TrainingPreference? preference = preferenceForCatalog(catalogId);
-    if (preference != null) {
-      present.add(preference);
-    }
+    present.addAll(preferencesForCatalog(catalogId));
   }
   final List<String> missing = <String>[];
   for (final TrainingPreference preference in TrainingPreference.values) {
     if (!bias.contains(preference) || present.contains(preference)) {
       continue;
     }
-    final String catalogId = catalogIdForPreference(preference, equipment);
-    if (presentIds.contains(catalogId) || missing.contains(catalogId)) {
+    final String? catalogId = catalogIdForPreference(preference, equipment);
+    if (catalogId == null ||
+        presentIds.contains(catalogId) ||
+        missing.contains(catalogId)) {
       continue;
     }
     missing.add(catalogId);
@@ -137,14 +128,16 @@ List<String> missingPreferenceCatalogIds({
   return missing;
 }
 
-String catalogIdForPreference(
+/// Representative catalog id for a preferred body part, when this equipment
+/// profile has one. Bodyweight has no shoulder movement in the catalog.
+String? catalogIdForPreference(
   TrainingPreference preference,
   EquipmentProfile equipment,
 ) {
   switch (preference) {
     case TrainingPreference.core:
       return 'ex_plank';
-    case TrainingPreference.push:
+    case TrainingPreference.chest:
       switch (equipment) {
         case EquipmentProfile.fullGym:
           return 'ex_barbell_bench';
@@ -153,7 +146,7 @@ String catalogIdForPreference(
         case EquipmentProfile.bodyweight:
           return 'ex_dip';
       }
-    case TrainingPreference.pull:
+    case TrainingPreference.back:
       switch (equipment) {
         case EquipmentProfile.fullGym:
           return 'ex_barbell_row';
@@ -162,15 +155,26 @@ String catalogIdForPreference(
         case EquipmentProfile.bodyweight:
           return 'ex_pullup';
       }
+    case TrainingPreference.shoulders:
+      switch (equipment) {
+        case EquipmentProfile.fullGym:
+        case EquipmentProfile.dumbbells:
+          return 'ex_overhead_press';
+        case EquipmentProfile.bodyweight:
+          return null;
+      }
     case TrainingPreference.legs:
       switch (equipment) {
         case EquipmentProfile.fullGym:
           return 'ex_back_squat';
         case EquipmentProfile.dumbbells:
-          return 'ex_lunge';
         case EquipmentProfile.bodyweight:
           return 'ex_lunge';
       }
+    case TrainingPreference.glutes:
+      return 'ex_hip_thrust';
+    case TrainingPreference.arms:
+      return 'ex_dip';
   }
 }
 

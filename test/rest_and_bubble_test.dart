@@ -164,6 +164,93 @@ void main() {
       );
     });
 
+    test('empty draft does not look like a timed workout', () {
+      final DateTime createdAt = DateTime.utc(2026, 10, 17, 8);
+      final WorkoutSession draft = WorkoutSession.create(startedAt: createdAt);
+      expect(draft.isTimerRunning, isFalse);
+      expect(draft.timerOrigin, isNull);
+      expect(
+        workoutBubbleVisible(
+          unfinished: draft,
+          topPageRouteName: Navigator.defaultRouteName,
+          coveredByPopup: false,
+        ),
+        isFalse,
+      );
+
+      final WorkoutSession live = draft.copyWith(
+        exercises: const <WorkoutExercise>[
+          WorkoutExercise(
+            id: 'e-1',
+            name: '杠铃卧推',
+            catalogId: 'ex_barbell_bench',
+            sets: <WorkoutSet>[],
+          ),
+        ],
+        timerStartedAt: DateTime.utc(2026, 10, 17, 8, 5),
+      );
+      expect(live.timerOrigin, DateTime.utc(2026, 10, 17, 8, 5));
+      expect(live.startedAt, createdAt);
+      expect(live.isTimerRunning, isTrue);
+      expect(
+        workoutBubbleVisible(
+          unfinished: live,
+          topPageRouteName: Navigator.defaultRouteName,
+          coveredByPopup: false,
+        ),
+        isTrue,
+      );
+      expect(
+        workoutBubbleVisible(
+          unfinished: live,
+          topPageRouteName: SessionRoutes.nameFor(live.id),
+          coveredByPopup: false,
+        ),
+        isFalse,
+      );
+
+      final WorkoutSession cleared = live.copyWith(
+        exercises: const <WorkoutExercise>[],
+      );
+      expect(cleared.isTimerRunning, isFalse);
+      expect(
+        workoutBubbleVisible(
+          unfinished: cleared,
+          topPageRouteName: Navigator.defaultRouteName,
+          coveredByPopup: false,
+        ),
+        isFalse,
+      );
+
+      final WorkoutSession finished = live.copyWith(
+        endedAt: DateTime.utc(2026, 10, 17, 9),
+      );
+      expect(finished.isTimerRunning, isFalse);
+      expect(
+        workoutBubbleVisible(
+          unfinished: finished,
+          topPageRouteName: Navigator.defaultRouteName,
+          coveredByPopup: false,
+        ),
+        isFalse,
+      );
+
+      final WorkoutSession legacy = WorkoutSession.fromJson(<String, Object?>{
+        'id': 'w-legacy',
+        'startedAt': createdAt.toIso8601String(),
+        'exercises': <Map<String, Object?>>[
+          <String, Object?>{
+            'id': 'e-legacy',
+            'name': '杠铃卧推',
+            'catalogId': 'ex_barbell_bench',
+            'sets': <Map<String, Object?>>[],
+          },
+        ],
+      });
+      expect(legacy.timerOrigin, createdAt);
+      expect(legacy.isTimerRunning, isTrue);
+    });
+
     test('shell tabs sit above the bottom nav', () {
       expect(
         workoutBubbleBottomInset(

@@ -1,4 +1,6 @@
 import 'package:curvefree/features/plan/plan_constants.dart';
+import 'package:curvefree/features/exercises/exercise_catalog.dart';
+import 'package:curvefree/features/exercises/models/catalog_exercise.dart';
 import 'package:curvefree/features/training/models/workout_models.dart';
 
 final class PlannedItem {
@@ -164,13 +166,25 @@ int _asInt(Object? value, int fallback) {
 
 List<WorkoutExercise> exercisesFromPlan(PlannedSession session) {
   return session.items.map((PlannedItem item) {
-    final built = WorkoutExercise.create(
-      item.nameZh,
+    final CatalogExercise? resolved = ExerciseCatalog.resolve(
       catalogId: item.catalogId,
+      nameZh: item.nameZh,
+    );
+    final String? catalogId = resolved?.id ?? _storedCatalogId(item.catalogId);
+    final built = WorkoutExercise.create(
+      resolved?.nameZh ?? item.nameZh,
+      catalogId: catalogId,
     );
     final sets = <WorkoutSet>[
       for (int i = 0; i < item.sets; i++) WorkoutSet.create(reps: item.reps),
     ];
     return built.copyWith(sets: sets);
   }).toList();
+}
+
+String? _storedCatalogId(String catalogId) {
+  if (catalogId.isEmpty) {
+    return null;
+  }
+  return catalogId;
 }

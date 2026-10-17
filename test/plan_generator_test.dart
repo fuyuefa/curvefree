@@ -134,9 +134,9 @@ void main() {
     );
   });
 
-  test('preferred patterns gain a set and missing patterns are filled', () {
+  test('preferred body parts gain a set and missing parts are filled', () {
     final plan = _baseline(
-      preferences: const <TrainingPreference>[TrainingPreference.push],
+      preferences: const <TrainingPreference>[TrainingPreference.chest],
     );
     expect(
       _sets(plan, 'ex_barbell_bench'),
@@ -151,7 +151,7 @@ void main() {
     expect(
       missingPreferenceCatalogIds(
         presentCatalogIds: const <String>['ex_barbell_row'],
-        preferences: const <TrainingPreference>[TrainingPreference.push],
+        preferences: const <TrainingPreference>[TrainingPreference.chest],
         equipment: EquipmentProfile.fullGym,
       ),
       <String>['ex_barbell_bench'],
@@ -272,7 +272,7 @@ void main() {
 
 TrainingPlan _baseline({
   BiologicalSex? sex,
-  int? heightCm,
+  double? heightCm,
   double? weightKg,
   TrainingExperience? experience,
   List<TrainingPreference> preferences = const <TrainingPreference>[],

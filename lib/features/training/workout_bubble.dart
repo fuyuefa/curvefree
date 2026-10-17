@@ -5,8 +5,9 @@ import 'package:flutter/material.dart';
 
 /// Whether the in-progress bubble should show for [unfinished].
 ///
-/// Hidden on that session's own page, while a dialog or sheet is up, and
-/// when nothing is unfinished. Shell tabs and other pushed pages show it.
+/// Hidden on that session's own page, while a dialog or sheet is up, when
+/// the session is finished, and while it is still an empty draft. The wall
+/// clock starts only after the session has at least one exercise.
 bool workoutBubbleVisible({
   required WorkoutSession? unfinished,
   required String? topPageRouteName,
@@ -15,7 +16,7 @@ bool workoutBubbleVisible({
   if (coveredByPopup) {
     return false;
   }
-  if (unfinished == null || unfinished.isFinished) {
+  if (unfinished == null || !unfinished.isTimerRunning) {
     return false;
   }
   return topPageRouteName != SessionRoutes.nameFor(unfinished.id);

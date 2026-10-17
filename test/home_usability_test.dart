@@ -61,7 +61,9 @@ void main() {
       ),
     );
 
-    await tester.pumpWidget(CurveFreeApp(localStore: store));
+    await tester.pumpWidget(
+      CurveFreeApp(localStore: store, skipOnboarding: true),
+    );
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
@@ -107,7 +109,9 @@ void main() {
       ),
     );
 
-    await tester.pumpWidget(CurveFreeApp(localStore: store));
+    await tester.pumpWidget(
+      CurveFreeApp(localStore: store, skipOnboarding: true),
+    );
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
@@ -146,7 +150,9 @@ void main() {
       ),
     );
 
-    await tester.pumpWidget(CurveFreeApp(localStore: store));
+    await tester.pumpWidget(
+      CurveFreeApp(localStore: store, skipOnboarding: true),
+    );
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
@@ -178,7 +184,11 @@ void main() {
     );
 
     await tester.pumpWidget(
-      CurveFreeApp(localStore: store, backupGateway: gateway),
+      CurveFreeApp(
+        localStore: store,
+        backupGateway: gateway,
+        skipOnboarding: true,
+      ),
     );
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
@@ -269,7 +279,9 @@ void main() {
       ),
     );
 
-    await tester.pumpWidget(CurveFreeApp(localStore: store));
+    await tester.pumpWidget(
+      CurveFreeApp(localStore: store, skipOnboarding: true),
+    );
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 200));
     await tester.tap(find.byKey(const Key('nav_training')));
@@ -277,10 +289,10 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
     await tester.tap(find.byKey(const Key('btn_start_workout')));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 200));
-    await tester.tap(find.byKey(const Key('btn_add_exercise')));
+    await tester.pump(const Duration(milliseconds: 300));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text(AppStrings.pickExercise), findsOneWidget);
     await tester.tap(find.text('杠铃卧推'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));

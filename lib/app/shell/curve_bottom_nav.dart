@@ -137,6 +137,7 @@ class _NavItem extends StatelessWidget {
                 fontSize: 12,
                 fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
                 color: color,
+                fontFamily: AppFonts.ui,
                 fontFamilyFallback: AppFonts.cjkFallback,
               ),
             ),

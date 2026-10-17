@@ -1,5 +1,6 @@
 import 'package:curvefree/app/theme/app_theme.dart';
 import 'package:curvefree/app/theme/curve_colors.dart';
+import 'package:curvefree/core/constants/app_tokens.dart';
 import 'package:curvefree/core/constants/curve_palette.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -14,6 +15,8 @@ void main() {
     expect(light.colorScheme.secondary, const Color(0xFFE8C4A8));
     expect(light.colorScheme.tertiary, const Color(0xFF7B9E8E));
     expect(light.brightness, Brightness.light);
+    expect(light.textTheme.bodyLarge?.fontFamily, AppFonts.ui);
+    expect(dark.textTheme.titleLarge?.fontFamily, AppFonts.ui);
     expect(light.extension<CurveColors>()!.success, CurvePalette.light.success);
 
     expect(dark.colorScheme.primary, const Color(0xFFB8A0D4));
