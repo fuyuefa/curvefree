@@ -8,6 +8,7 @@ alwaysApply: true
 - **技术栈锁定**：见 `docs/STACK.md`。禁止随意换栈；换依赖须有明确理由并更新文档。
 - **分模块开发**：竖切推进（存储 → 训练 → 动作库 → 计划 → 饮食…）。禁止一次性摊大饼。
 - **达标再提交**：模块经质检门槛后再 commit / PR；远程 `https://github.com/fuyuefa/curvefree.git`；合入走 PR，达标后可用 `gh` merge。
+- **提交信息**：commit 与 PR squash-merge 标题必须遵循 Conventional Commits 1.0.0（`<type>(optional-scope): <description>`）。规范与正反例见 `docs/ENGINEERING.md`。
 - **单文件 ≤ 1000 行**。
 - **禁止魔幻词**：无说明的魔法数字/字符串、含糊命名；抽到 `lib/core/constants` 或具名常量。
 - **修缺陷查根因**，禁止补丁式临时顶住。
