@@ -8,6 +8,7 @@ import 'package:curvefree/features/exercises/models/catalog_exercise.dart';
 import 'package:curvefree/features/exercises/pages/exercise_library_page.dart';
 import 'package:curvefree/features/training/models/workout_models.dart';
 import 'package:curvefree/features/training/rest_timer.dart';
+import 'package:curvefree/features/training/session_done_summary.dart';
 import 'package:curvefree/features/training/set_template.dart';
 import 'package:curvefree/features/training/training_providers.dart';
 import 'package:curvefree/features/training/widgets/rest_timer_bar.dart';
@@ -28,7 +29,8 @@ class SessionPage extends ConsumerWidget {
       workoutSessionsProvider,
     );
     return asyncSessions.when(
-      loading: () => const Scaffold(body: Center(child: Text('正在读取训练课…'))),
+      loading: () =>
+          const Scaffold(body: Center(child: Text(AppStrings.readingWorkout))),
       error: (Object error, StackTrace stack) => Scaffold(
         appBar: AppBar(),
         body: Center(child: Text('读取失败：$error')),
@@ -44,7 +46,7 @@ class SessionPage extends ConsumerWidget {
         if (session == null) {
           return Scaffold(
             appBar: AppBar(),
-            body: const Center(child: Text('训练课不存在')),
+            body: const Center(child: Text(AppStrings.missingWorkout)),
           );
         }
         return _SessionScaffold(session: session);
@@ -198,18 +200,21 @@ class _SessionScaffoldState extends ConsumerState<_SessionScaffold> {
 
   Future<void> _finishAfterConfirm(BuildContext context, WidgetRef ref) async {
     final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    final DateTime now = ref.read(restTimerProvider.notifier).clock();
+    final String summary = formatSessionDoneBody(
+      sessionDoneSummary(
+        session: session,
+        now: now,
+        rest: ref.read(restTimerProvider).restTotalFor(session.id, now),
+      ),
+    );
     final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           key: const Key('dialog_finish_session'),
           title: const Text(AppStrings.finishSessionConfirmTitle),
-          content: Text(
-            AppStrings.completedVolumeLine(
-              completedSets: session.completedSetCount,
-              volumeKg: session.volumeKg,
-            ),
-          ),
+          content: Text(summary, key: const Key('session_done_body')),
           actions: <Widget>[
             TextButton(
               key: const Key('btn_keep_logging_sets'),

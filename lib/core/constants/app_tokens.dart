@@ -57,7 +57,7 @@ abstract final class AppStrings {
   static const String tagline = '本机训练与饮食记录 · 完全开源';
 
   /// Single privacy line. Shown on 今日, not repeated on every screen.
-  static const String localOnlyNotice = '数据只留在这台设备，不会上传。';
+  static const String localOnlyNotice = '数据只留在这台设备，不会上传';
   static const String training = '训练';
   static const String nutrition = '饮食';
   static const String trainingHint = '记录组数、重量；动作库可查 Lottie';
@@ -66,25 +66,25 @@ abstract final class AppStrings {
   static const String addFood = '记一笔';
   static const String pickFood = '选择食物';
   static const String searchFoodHint = '搜索鸡胸、米饭…';
-  static const String emptyFoodLogs = '今天还没有饮食记录。';
+  static const String emptyFoodLogs = '今天还没有饮食记录';
   static const String gramsLabel = '克';
   static const String todayMacros = '今日营养';
   static const String dietAssistTitle = '饮食辅助';
-  static const String dietAssistMet = '蛋白目标已覆盖。';
+  static const String dietAssistMet = '蛋白目标已覆盖';
   static const String trainingLogTitle = '训练记录';
   static const String startWorkout = '开始训练';
-  static const String emptyWorkouts = '还没有训练课。点下方开始，当场记组。';
+  static const String emptyWorkouts = '还没有训练记录，点下方开始，当场记组';
   static const String addExercise = '添加动作';
   static const String addSet = '加一组';
   static const String exerciseNameHint = '动作名，如卧推';
   static const String finishWorkout = '完成训练';
   static const String finishThisSession = '完成本次训练';
-  static const String finishSessionConfirmTitle = '完成这堂训练？';
+  static const String finishSessionConfirmTitle = '完成这次训练？';
   static const String finishSessionConfirmAction = '完成';
   static const String keepLoggingSets = '继续记组';
   static const String workoutCompleted = '训练已完成';
-  static const String deleteSessionTitle = '删除这堂训练？';
-  static const String deleteSessionBody = '此操作无法撤销。';
+  static const String deleteSessionTitle = '删除这次训练？';
+  static const String deleteSessionBody = '此操作无法撤销';
   static const String deleteSessionAction = '删除';
   static const String navToday = '今日';
   static const String navMe = '我的';
@@ -92,6 +92,12 @@ abstract final class AppStrings {
   static const String weekProgress = '本周进度';
   static const String statCompletion = '完成率';
   static const String muscleGroupsTitle = '肌群';
+  static const String musclesPlannedToday = '今天会练到';
+  static const String weekTrend = '近一周趋势';
+  static const String wallClockLabel = '总时长';
+  static const String activeTrainingLabel = '不含休息';
+  static const String readingWorkout = '正在读取训练…';
+  static const String missingWorkout = '这次训练不存在';
   static const String elapsedLabel = '用时';
   static const String restTimerLabel = '组间休息';
   static const String skipRest = '先不休息';
@@ -104,7 +110,7 @@ abstract final class AppStrings {
   static const String themeDark = '夜间';
   static const String workoutInProgress = '进行中';
   static const String workoutFinished = '已完成';
-  static const String deleteWorkout = '删除训练课';
+  static const String deleteWorkout = '删除这次训练';
   static const String setColumn = '组';
   static const String weightColumn = 'kg';
   static const String repsColumn = '次';
@@ -118,7 +124,7 @@ abstract final class AppStrings {
   static const String customExercise = '自定义动作名';
   static const String trainingPlanTitle = '训练计划';
   static const String generatePlan = '生成计划';
-  static const String emptyPlan = '还没有计划。选目标与天数后生成，规则公开可改。';
+  static const String emptyPlan = '还没有计划，选目标与天数后生成，规则公开可改';
   static const String daysPerWeek = '每周训练天数';
   static const String startFromPlan = '按此日开练';
   static const String localData = '本机数据';
@@ -129,10 +135,10 @@ abstract final class AppStrings {
   static const String todayRest = '今日按计划休息';
   static const String backupExportConfirmTitle = '导出备份到文件';
   static const String backupExportConfirmBody =
-      '备份含本机训练与饮食。下一步可能出现系统分享面板：选「存储/文件」可只留在设备；选网盘或聊天会把文件发出去。应用本身不会上传。';
-  static const String backupSaved = '备份已保存在本机。分享到聊天或网盘会让这份文件离开设备。';
+      '备份含本机训练与饮食，下一步可能出现系统分享面板：选「存储/文件」可只留在设备；选网盘或聊天会把文件发出去，应用本身不会上传';
+  static const String backupSaved = '备份已保存在本机，分享到聊天或网盘会让这份文件离开设备';
   static const String backupRestoreTitle = '恢复备份';
-  static const String backupRestoreBody = '用这份备份覆盖本机的训练、饮食和计划？数据仍只留在这台设备，不会上传。';
+  static const String backupRestoreBody = '用这份备份覆盖本机的训练、饮食和计划？数据仍只留在这台设备，不会上传';
   static const String backupRestored = '已从备份恢复，数据仍只在本机';
   static const String backupExportFailed = '导出失败';
   static const String backupImportFailed = '恢复失败';
@@ -151,4 +157,12 @@ abstract final class AppStrings {
     final String volume = volumeKg.toStringAsFixed(0);
     return '已完成 $completedSets 组 · $volumeLabel $volume $weightColumn';
   }
+
+  static String weekFinishedLine(int count) => '本周完成 $count 次';
+
+  static String recentVolumeLine({required int days, required String volume}) {
+    return '近 $days 天容量 $volume $weightColumn';
+  }
+
+  static String trendNoVolumeLine(int days) => '这 $days 天还没有容量';
 }

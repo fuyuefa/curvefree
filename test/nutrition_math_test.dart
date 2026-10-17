@@ -25,4 +25,14 @@ void main() {
     );
     expect(grams, closeTo(40, 0.5));
   });
+
+  test('protein gap copy has no sentence-final period', () {
+    final String line = proteinGapLine(
+      remainingProteinG: 12.4,
+      foodNameZh: '鸡胸肉',
+      grams: 80.2,
+    );
+    expect(line, '蛋白还差 12 g，可记 80 g 鸡胸肉');
+    expect(line.contains('。'), isFalse);
+  });
 }

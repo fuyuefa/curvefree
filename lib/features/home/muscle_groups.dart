@@ -1,3 +1,4 @@
+import 'package:curvefree/core/constants/app_tokens.dart';
 import 'package:curvefree/features/home/week_progress.dart';
 import 'package:curvefree/features/plan/models/training_plan.dart';
 import 'package:curvefree/features/training/models/workout_models.dart';
@@ -121,6 +122,13 @@ Set<MuscleGroup> plannedMuscleGroups(PlannedSession? session) {
     );
   }
   return groups;
+}
+
+String muscleSectionTitle({required bool plannedForToday}) {
+  if (plannedForToday) {
+    return AppStrings.musclesPlannedToday;
+  }
+  return AppStrings.muscleGroupsTitle;
 }
 
 MuscleDotState muscleDotState({

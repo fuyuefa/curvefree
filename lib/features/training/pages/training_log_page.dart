@@ -50,7 +50,7 @@ class TrainingLogPage extends ConsumerWidget {
         label: const Text(AppStrings.startWorkout),
       ),
       body: asyncSessions.when(
-        loading: () => const Center(child: Text('正在读取训练课…')),
+        loading: () => const Center(child: Text(AppStrings.readingWorkout)),
         error: (Object error, StackTrace stack) =>
             Center(child: Text('读取失败：$error')),
         data: (List<WorkoutSession> sessions) {

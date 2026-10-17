@@ -51,3 +51,14 @@ abstract final class NutritionMath {
     return grams;
   }
 }
+
+/// Soft gap line. Sentence-final full-width periods stay off user copy.
+String proteinGapLine({
+  required double remainingProteinG,
+  required String foodNameZh,
+  required double grams,
+}) {
+  final int protein = remainingProteinG.round();
+  final int portion = grams.round();
+  return '蛋白还差 $protein g，可记 $portion g $foodNameZh';
+}

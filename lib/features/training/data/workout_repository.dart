@@ -54,7 +54,7 @@ final class WorkoutRepository {
         .toList(growable: false);
     final WorkoutSession? opened = newestUnfinishedSession(sessions);
     if (opened == null) {
-      throw StateError('未能打开训练课');
+      throw StateError('未能打开这次训练');
     }
     return opened;
   }
@@ -94,7 +94,7 @@ final class WorkoutRepository {
         (WorkoutSession item) => item.id == sessionId,
       );
       if (index < 0) {
-        throw StateError('训练课不存在');
+        throw StateError('这次训练不存在');
       }
       sessions[index] = update(sessions[index]);
       return snapshot.copyWith(

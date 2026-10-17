@@ -104,6 +104,31 @@ void main() {
       expect(rest.isRunningAt(start), isFalse);
       expect(rest.preferredSeconds, RestTimerLimits.minSeconds);
     });
+
+    test('closed rests accumulate and the open countdown stays separate', () {
+      final RestTimerState first = const RestTimerState().restarted(
+        sessionId: 'w-1',
+        exerciseId: 'e-1',
+        setId: 's-1',
+        now: start,
+      );
+      final DateTime mid = start.add(const Duration(seconds: 20));
+      final RestTimerState second = first.restarted(
+        sessionId: 'w-1',
+        exerciseId: 'e-1',
+        setId: 's-2',
+        now: mid,
+      );
+      expect(second.restTotalFor('w-1', mid), const Duration(seconds: 20));
+      final DateTime later = mid.add(const Duration(seconds: 10));
+      expect(second.restTotalFor('w-1', later), const Duration(seconds: 30));
+      expect(second.restTotalFor('w-other', later), isNull);
+
+      final RestTimerState paused = second.skipped(now: later);
+      expect(paused.sessionId, isNull);
+      expect(paused.restTotalFor('w-1', later), const Duration(seconds: 30));
+      expect(paused.clearedIfSession('w-1').restTotalFor('w-1', later), isNull);
+    });
   });
 
   group('workout bubble visibility', () {
