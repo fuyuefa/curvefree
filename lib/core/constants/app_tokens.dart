@@ -73,6 +73,13 @@ abstract final class AppStrings {
   static const String exerciseNameHint = '动作名，如卧推';
   static const String finishWorkout = '完成训练';
   static const String finishThisSession = '完成本次训练';
+  static const String finishSessionConfirmTitle = '完成这堂训练？';
+  static const String finishSessionConfirmAction = '完成';
+  static const String keepLoggingSets = '继续记组';
+  static const String workoutCompleted = '训练已完成';
+  static const String deleteSessionTitle = '删除这堂训练？';
+  static const String deleteSessionBody = '此操作无法撤销。';
+  static const String deleteSessionAction = '删除';
   static const String navToday = '今日';
   static const String navMe = '我的';
   static const String continueAction = '继续';
@@ -110,7 +117,10 @@ abstract final class AppStrings {
   static const String resumeWorkout = '继续未完成训练';
   static const String todayPlan = '今日计划';
   static const String todayRest = '今日按计划休息';
-  static const String backupSaved = '备份已写入本机文件。分享或另存由你决定，不会自动上传。';
+  static const String backupExportConfirmTitle = '导出备份到文件';
+  static const String backupExportConfirmBody =
+      '备份含本机训练与饮食。下一步可能出现系统分享面板：选「存储/文件」可只留在设备；选网盘或聊天会把文件发出去。应用本身不会上传。';
+  static const String backupSaved = '备份已保存在本机。分享到聊天或网盘会让这份文件离开设备。';
   static const String backupRestoreTitle = '恢复备份';
   static const String backupRestoreBody = '用这份备份覆盖本机的训练、饮食和计划？数据仍只留在这台设备，不会上传。';
   static const String backupRestored = '已从备份恢复，数据仍只在本机';
@@ -122,4 +132,13 @@ abstract final class AppStrings {
   static const String storageReady = '本地库已就绪';
   static const String storageEmpty = '尚无用户数据';
   static const String gplNotice = '以 GNU GPLv3 发布';
+
+  /// 「已完成 N 组 · 容量 X kg」. Volume uses the session total, rounded like the bar.
+  static String completedVolumeLine({
+    required int completedSets,
+    required double volumeKg,
+  }) {
+    final String volume = volumeKg.toStringAsFixed(0);
+    return '已完成 $completedSets 组 · $volumeLabel $volume $weightColumn';
+  }
 }
