@@ -4,6 +4,7 @@ import 'package:curvefree/core/constants/app_tokens.dart';
 import 'package:curvefree/core/storage/local_store_providers.dart';
 import 'package:curvefree/core/storage/local_store_snapshot.dart';
 import 'package:curvefree/features/home/muscle_groups.dart';
+import 'package:curvefree/features/home/pages/train_trend_page.dart';
 import 'package:curvefree/features/home/week_progress.dart';
 import 'package:curvefree/features/home/widgets/today_cards.dart';
 import 'package:curvefree/features/plan/models/training_plan.dart';
@@ -58,8 +59,17 @@ class TodayTrainingSection extends ConsumerWidget {
         WeekProgressCard(progress: progress),
         const SizedBox(height: AppSpacing.sm),
         MuscleGroupDots(
+          title: muscleSectionTitle(plannedForToday: today != null),
           trained: trainedMuscleGroups(sessions: loaded, now: now),
           planned: plannedMuscleGroups(today),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        TodayTrendEntry(
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const TrainTrendPage()),
+            );
+          },
         ),
         const SizedBox(height: AppSpacing.sm),
         if (today != null)

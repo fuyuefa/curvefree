@@ -93,8 +93,11 @@ class NutritionAssistNote extends StatelessWidget {
         food: proteinFood,
         remainingProteinG: remainingProtein,
       );
-      suggestion =
-          '蛋白还差 ${remainingProtein.round()} g。可记 ${grams.round()} g ${proteinFood.nameZh}。';
+      suggestion = proteinGapLine(
+        remainingProteinG: remainingProtein,
+        foodNameZh: proteinFood.nameZh,
+        grams: grams,
+      );
     }
     final CurveColors colors = CurveColors.of(context);
     return Container(

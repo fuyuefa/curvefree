@@ -32,6 +32,9 @@ final class RestTimerState {
     this.exerciseId,
     this.setId,
     this.endsAt,
+    this.restStartedAt,
+    this.accountedSessionId,
+    this.accumulatedRest = Duration.zero,
   });
 
   final int preferredSeconds;
@@ -39,6 +42,15 @@ final class RestTimerState {
   final String? exerciseId;
   final String? setId;
   final DateTime? endsAt;
+
+  /// When the current countdown began. Closed intervals live in [accumulatedRest].
+  final DateTime? restStartedAt;
+
+  /// Session that owns [accumulatedRest], including after the countdown stops.
+  final String? accountedSessionId;
+
+  /// Rest already taken in [accountedSessionId], excluding the open countdown.
+  final Duration accumulatedRest;
 
   bool isRunningAt(DateTime now) {
     final DateTime? end = endsAt;
@@ -64,18 +76,42 @@ final class RestTimerState {
     return remaining;
   }
 
+  /// Rest taken so far for [id]. Null when this countdown belongs elsewhere
+  /// or nothing has been rested yet.
+  Duration? restTotalFor(String id, DateTime now) {
+    if (sessionId != id && accountedSessionId != id) {
+      return null;
+    }
+    final Duration open = sessionId == id
+        ? _elapsedCurrent(now)
+        : Duration.zero;
+    final Duration total = accumulatedRest + open;
+    if (total <= Duration.zero) {
+      return null;
+    }
+    return total;
+  }
+
   RestTimerState restarted({
     required String sessionId,
     required String exerciseId,
     required String setId,
     required DateTime now,
   }) {
+    final bool sameOwner =
+        accountedSessionId == null || accountedSessionId == sessionId;
+    final Duration carried = sameOwner
+        ? accumulatedRest + _elapsedCurrent(now)
+        : Duration.zero;
     return RestTimerState(
       preferredSeconds: preferredSeconds,
       sessionId: sessionId,
       exerciseId: exerciseId,
       setId: setId,
+      restStartedAt: now,
       endsAt: now.add(Duration(seconds: preferredSeconds)),
+      accountedSessionId: sessionId,
+      accumulatedRest: carried,
     );
   }
 
@@ -84,11 +120,19 @@ final class RestTimerState {
     final DateTime? end = endsAt;
     final String? activeSession = sessionId;
     if (activeSession == null || end == null) {
-      return RestTimerState(preferredSeconds: nextPreferred);
+      return RestTimerState(
+        preferredSeconds: nextPreferred,
+        accountedSessionId: accountedSessionId,
+        accumulatedRest: accumulatedRest,
+      );
     }
     final DateTime nextEnd = end.add(Duration(seconds: deltaSeconds));
     if (!nextEnd.isAfter(now)) {
-      return RestTimerState(preferredSeconds: nextPreferred);
+      return RestTimerState(
+        preferredSeconds: nextPreferred,
+        accountedSessionId: accountedSessionId ?? activeSession,
+        accumulatedRest: accumulatedRest + _elapsedCurrent(now),
+      );
     }
     final int remainingSeconds = nextEnd.difference(now).inSeconds;
     final DateTime cappedEnd = remainingSeconds > RestTimerLimits.maxSeconds
@@ -99,19 +143,41 @@ final class RestTimerState {
       sessionId: activeSession,
       exerciseId: exerciseId,
       setId: setId,
+      restStartedAt: restStartedAt,
       endsAt: cappedEnd,
+      accountedSessionId: accountedSessionId ?? activeSession,
+      accumulatedRest: accumulatedRest,
     );
   }
 
-  RestTimerState skipped() {
-    return RestTimerState(preferredSeconds: preferredSeconds);
+  RestTimerState skipped({DateTime? now}) {
+    final Duration extra = now == null ? Duration.zero : _elapsedCurrent(now);
+    return RestTimerState(
+      preferredSeconds: preferredSeconds,
+      accountedSessionId: sessionId ?? accountedSessionId,
+      accumulatedRest: accumulatedRest + extra,
+    );
   }
 
   RestTimerState clearedIfSession(String id) {
-    if (sessionId != id) {
+    if (sessionId != id && accountedSessionId != id) {
       return this;
     }
-    return skipped();
+    return RestTimerState(preferredSeconds: preferredSeconds);
+  }
+
+  Duration _elapsedCurrent(DateTime now) {
+    final DateTime? start = restStartedAt;
+    final DateTime? end = endsAt;
+    if (start == null || end == null || sessionId == null) {
+      return Duration.zero;
+    }
+    final DateTime capped = now.isBefore(end) ? now : end;
+    final Duration elapsed = capped.difference(start);
+    if (elapsed.isNegative) {
+      return Duration.zero;
+    }
+    return elapsed;
   }
 }
 
@@ -157,7 +223,7 @@ final class RestTimerController extends Notifier<RestTimerState> {
   }
 
   void skip() {
-    state = state.skipped();
+    state = state.skipped(now: clock());
   }
 
   void clearSession(String sessionId) {

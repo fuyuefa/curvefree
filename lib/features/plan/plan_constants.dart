@@ -124,5 +124,5 @@ abstract final class PlanVolumeLimits {
 }
 
 abstract final class PlanCopy {
-  static const String periodVolumeNote = '经期这几天，组数已略减。';
+  static const String periodVolumeNote = '经期这几天，组数已略减';
 }

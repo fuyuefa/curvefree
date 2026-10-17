@@ -11,6 +11,7 @@ alwaysApply: true
 - **提交信息**：commit 与 PR squash-merge 标题必须遵循 Conventional Commits 1.0.0（`<type>(optional-scope): <description>`）。规范与正反例见 `docs/ENGINEERING.md`。
 - **单文件 ≤ 1000 行**。
 - **禁止魔幻词**：无说明的魔法数字/字符串、含糊命名；抽到 `lib/core/constants` 或具名常量。
+- **文案**：用户可见中文文案句末不加「。」。
 - **修缺陷查根因**，禁止补丁式临时顶住。
 - 格式与静态检查以 `analysis_options.yaml` + `dart format` + `flutter analyze` 为准。
 - 目录：`lib/app` 壳层，`lib/core` 共享，`lib/features/<name>` 功能模块。

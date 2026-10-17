@@ -61,13 +61,6 @@ void main() {
     expect(find.byKey(const Key('btn_finish_workout')), findsOneWidget);
   }
 
-  String summaryLine() {
-    return AppStrings.completedVolumeLine(
-      completedSets: 1,
-      volumeKg: completedWeightKg * completedReps,
-    );
-  }
-
   testWidgets('finish asks first; cancel keeps the session open', (
     WidgetTester tester,
   ) async {
@@ -80,7 +73,16 @@ void main() {
 
     expect(find.byKey(const Key('dialog_finish_session')), findsOneWidget);
     expect(find.text(AppStrings.finishSessionConfirmTitle), findsOneWidget);
-    expect(find.text(summaryLine()), findsOneWidget);
+    expect(find.byKey(const Key('session_done_body')), findsOneWidget);
+    expect(
+      find.textContaining('${AppStrings.setsCountLabel} 1'),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('${AppStrings.volumeLabel} 500'),
+      findsOneWidget,
+    );
+    expect(find.textContaining(AppStrings.wallClockLabel), findsOneWidget);
     expect(
       (await store.read()).workouts.single[TrainingJsonKeys.endedAt],
       isNull,

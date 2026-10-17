@@ -7,6 +7,10 @@
 5. 文件组织：`lib/app` 壳层，`lib/core` 共享，`lib/features/<name>` 功能模块。
 6. 注释：只写非显而易见意图；禁止堆砌叙述性废话。
 
+## 文案
+
+用户可见中文文案句末不加「。」。逗号、问号和省略号可以保留。开发注释、许可证和文档不受这条限制。
+
 ## 提交信息（Conventional Commits 1.0.0）
 
 每次 commit，以及 PR squash-merge 写进 `main` 的提交标题，都用下面的格式：

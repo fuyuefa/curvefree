@@ -193,10 +193,12 @@ class MuscleGroupDots extends StatelessWidget {
     super.key,
     required this.trained,
     required this.planned,
+    required this.title,
   });
 
   final Set<MuscleGroup> trained;
   final Set<MuscleGroup> planned;
+  final String title;
 
   @override
   Widget build(BuildContext context) {
@@ -204,10 +206,7 @@ class MuscleGroupDots extends StatelessWidget {
       key: const Key('home_muscle_groups'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Text(
-          AppStrings.muscleGroupsTitle,
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
+        Text(title, style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: AppSpacing.sm),
         Row(
           children: <Widget>[
@@ -272,6 +271,43 @@ class _Dot extends StatelessWidget {
           style: Theme.of(context).textTheme.labelSmall?.copyWith(color: label),
         ),
       ],
+    );
+  }
+}
+
+class TodayTrendEntry extends StatelessWidget {
+  const TodayTrendEntry({super.key, required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final CurveColors colors = CurveColors.of(context);
+    return Material(
+      color: colors.card,
+      borderRadius: BorderRadius.circular(AppRadii.card),
+      child: InkWell(
+        key: const Key('home_open_trend'),
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadii.card),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: curveSurfaceDecoration(colors),
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                child: Text(
+                  AppStrings.weekTrend,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              Icon(Icons.show_chart, color: colors.primary),
+              Icon(Icons.chevron_right, color: colors.primary),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
