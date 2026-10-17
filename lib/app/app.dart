@@ -1,5 +1,7 @@
+import 'package:curvefree/app/shell/shell_route_observer.dart';
 import 'package:curvefree/app/theme/theme_mode.dart';
 import 'package:curvefree/features/onboarding/onboarding_gate.dart';
+import 'package:curvefree/features/training/widgets/workout_float_bubble.dart';
 import 'package:curvefree/core/backup/backup_file_gateway.dart';
 import 'package:curvefree/core/backup/backup_file_gateway_factory.dart';
 import 'package:curvefree/core/constants/app_tokens.dart';
@@ -42,15 +44,26 @@ class CurveFreeApp extends StatelessWidget {
   }
 }
 
-class _CurveFreeRoot extends ConsumerWidget {
+class _CurveFreeRoot extends ConsumerStatefulWidget {
   const _CurveFreeRoot({required this.skipOnboarding});
 
   final bool skipOnboarding;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_CurveFreeRoot> createState() => _CurveFreeRootState();
+}
+
+class _CurveFreeRootState extends ConsumerState<_CurveFreeRoot> {
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+
+  @override
+  Widget build(BuildContext context) {
     final ThemeMode mode = ref.watch(themeModeProvider);
     return MaterialApp(
+      navigatorKey: _navigatorKey,
+      navigatorObservers: <NavigatorObserver>[
+        ref.watch(shellRouteObserverProvider),
+      ],
       title: AppStrings.appNameZh,
       debugShowCheckedModeBanner: false,
       theme: buildCurveFreeTheme(Brightness.light),
@@ -63,7 +76,16 @@ class _CurveFreeRoot extends ConsumerWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      home: OnboardingGate(skipOnboarding: skipOnboarding),
+      builder: (BuildContext context, Widget? child) {
+        return Stack(
+          fit: StackFit.expand,
+          children: <Widget>[
+            ?child,
+            WorkoutFloatBubble(navigatorKey: _navigatorKey),
+          ],
+        );
+      },
+      home: OnboardingGate(skipOnboarding: widget.skipOnboarding),
     );
   }
 }

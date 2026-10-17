@@ -4,7 +4,7 @@ import 'package:curvefree/core/constants/app_tokens.dart';
 import 'package:curvefree/features/plan/models/training_plan.dart';
 import 'package:curvefree/features/plan/plan_constants.dart';
 import 'package:curvefree/features/plan/plan_providers.dart';
-import 'package:curvefree/features/training/pages/session_page.dart';
+import 'package:curvefree/features/training/session_routes.dart';
 import 'package:curvefree/features/training/training_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -115,11 +115,7 @@ class _PlanPageState extends ConsumerState<PlanPage> {
     if (!mounted) {
       return;
     }
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => SessionPage(sessionId: workout.id),
-      ),
-    );
+    await Navigator.of(context).push(sessionPageRoute(workout.id));
   }
 }
 

@@ -11,7 +11,7 @@ import 'package:curvefree/features/plan/pages/plan_page.dart';
 import 'package:curvefree/features/plan/plan_providers.dart';
 import 'package:curvefree/features/training/elapsed_format.dart';
 import 'package:curvefree/features/training/models/workout_models.dart';
-import 'package:curvefree/features/training/pages/session_page.dart';
+import 'package:curvefree/features/training/session_routes.dart';
 import 'package:curvefree/features/training/training_providers.dart';
 import 'package:curvefree/features/training/unfinished_session.dart';
 import 'package:flutter/material.dart';
@@ -50,11 +50,7 @@ class TodayTrainingSection extends ConsumerWidget {
           TodayResumeCard(
             detail: _resumeDetail(unfinished, now),
             onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => SessionPage(sessionId: unfinished.id),
-                ),
-              );
+              Navigator.of(context).push(sessionPageRoute(unfinished.id));
             },
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -98,11 +94,7 @@ class TodayTrainingSection extends ConsumerWidget {
     if (!context.mounted) {
       return;
     }
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => SessionPage(sessionId: workout.id),
-      ),
-    );
+    await Navigator.of(context).push(sessionPageRoute(workout.id));
   }
 }
 
