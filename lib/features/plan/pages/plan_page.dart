@@ -91,6 +91,14 @@ class _PlanPageState extends ConsumerState<PlanPage> {
               '${plan.goal.labelZh} · ${plan.equipment.labelZh} · 每周 ${plan.daysPerWeek} 练',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
+            if (plan.periodAdjusted) ...<Widget>[
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                PlanCopy.periodVolumeNote,
+                key: const Key('plan_period_note'),
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ],
             const SizedBox(height: AppSpacing.sm),
             for (final PlannedSession session in plan.sessions)
               _SessionCard(session: session, onStart: () => _start(session)),

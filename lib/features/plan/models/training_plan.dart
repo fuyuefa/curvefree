@@ -14,6 +14,15 @@ final class PlannedItem {
   final int sets;
   final int reps;
 
+  PlannedItem copyWith({int? sets, int? reps}) {
+    return PlannedItem(
+      catalogId: catalogId,
+      nameZh: nameZh,
+      sets: sets ?? this.sets,
+      reps: reps ?? this.reps,
+    );
+  }
+
   factory PlannedItem.fromJson(Map<String, Object?> json) {
     return PlannedItem(
       catalogId: json[PlanJsonKeys.catalogId]?.toString() ?? '',
@@ -81,12 +90,17 @@ final class TrainingPlan {
     required this.daysPerWeek,
     required this.equipment,
     required this.sessions,
+    this.periodAdjusted = false,
   });
 
   final TrainingGoal goal;
   final int daysPerWeek;
   final EquipmentProfile equipment;
   final List<PlannedSession> sessions;
+
+  /// True only for the in-memory view during a period window.
+  /// Saved plans keep this false so the window can move day to day.
+  final bool periodAdjusted;
 
   PlannedSession? sessionForWeekday(int weekday) {
     for (final PlannedSession session in sessions) {
@@ -108,6 +122,7 @@ final class TrainingPlan {
       equipment: equipmentProfileFromWire(
         json[PlanJsonKeys.equipment]?.toString(),
       ),
+      periodAdjusted: json[PlanJsonKeys.periodAdjusted] == true,
       sessions: rawSessions is List
           ? rawSessions
                 .whereType<Map<Object?, Object?>>()
@@ -129,6 +144,7 @@ final class TrainingPlan {
       PlanJsonKeys.goal: goal.wireName,
       PlanJsonKeys.daysPerWeek: daysPerWeek,
       PlanJsonKeys.equipment: equipment.wireName,
+      PlanJsonKeys.periodAdjusted: periodAdjusted,
       PlanJsonKeys.sessions: sessions
           .map((PlannedSession s) => s.toJson())
           .toList(),

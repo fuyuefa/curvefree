@@ -1,23 +1,37 @@
+import 'package:curvefree/features/cycle/models/cycle_profile.dart';
 import 'package:curvefree/features/exercises/exercise_catalog.dart';
+import 'package:curvefree/features/onboarding/models/onboarding_choices.dart';
 import 'package:curvefree/features/plan/models/training_plan.dart';
+import 'package:curvefree/features/plan/plan_adjustments.dart';
 import 'package:curvefree/features/plan/plan_constants.dart';
 
 /// Transparent rule engine: split by frequency, swaps by equipment, sets by goal.
+///
+/// Experience, body size, activity, and muscle preference change the saved
+/// sets. Period recovery is date-based: pass [cycle] to preview a day, or call
+/// [adjustForPeriod] when the plan is read so the window is not frozen.
 abstract final class PlanGenerator {
   static TrainingPlan generate({
     required TrainingGoal goal,
     required int daysPerWeek,
     required EquipmentProfile equipment,
+    BiologicalSex? sex,
+    int? heightCm,
+    double? weightKg,
+    TrainingExperience? experience,
+    List<TrainingPreference> preferences = const <TrainingPreference>[],
+    DailyActivity? activity,
+    CycleProfile? cycle,
+    DateTime? onDate,
   }) {
-    final days = daysPerWeek.clamp(
-      PlanLimits.minDaysPerWeek,
-      PlanLimits.maxDaysPerWeek,
-    );
-    final weekdays = _weekdaysFor(days);
-    final slots = _slotTitles(days);
-    final sessions = <PlannedSession>[];
+    final int days = daysPerWeek
+        .clamp(PlanLimits.minDaysPerWeek, PlanLimits.maxDaysPerWeek)
+        .toInt();
+    final List<int> weekdays = _weekdaysFor(days);
+    final List<String> slots = _slotTitles(days);
+    final List<PlannedSession> built = <PlannedSession>[];
     for (int i = 0; i < days; i++) {
-      sessions.add(
+      built.add(
         PlannedSession(
           weekday: weekdays[i],
           title: slots[i],
@@ -25,11 +39,85 @@ abstract final class PlanGenerator {
         ),
       );
     }
-    return TrainingPlan(
+    final VolumeAdjustment volume = VolumeAdjustment.resolve(
+      heightCm: heightCm,
+      weightKg: weightKg,
+      experience: experience,
+      activity: activity,
+    );
+    final Set<TrainingPreference> bias = preferenceBias(preferences);
+    final List<PlannedSession> covered = _coverPreferences(
+      sessions: built,
+      bias: bias,
+      equipment: equipment,
+      goal: goal,
+    );
+    final List<PlannedSession> sessions = _applyVolume(
+      sessions: covered,
+      volume: volume,
+      bias: bias,
+    );
+    final TrainingPlan base = TrainingPlan(
       goal: goal,
       daysPerWeek: days,
       equipment: equipment,
       sessions: sessions,
+    );
+    if (cycle == null) {
+      return base;
+    }
+    return adjustForPeriod(
+      base,
+      sex: sex,
+      cycle: cycle,
+      onDate: onDate ?? DateTime.now(),
+    );
+  }
+
+  /// Drops one set per movement while [onDate] falls in a period window.
+  /// No-op when sex is not female or the stored dates cannot place the day.
+  static TrainingPlan adjustForPeriod(
+    TrainingPlan plan, {
+    required BiologicalSex? sex,
+    required CycleProfile? cycle,
+    required DateTime onDate,
+  }) {
+    if (plan.periodAdjusted) {
+      return plan;
+    }
+    if (!isInPeriodWindow(sex: sex, cycle: cycle, onDate: onDate)) {
+      return plan;
+    }
+    var changed = false;
+    final List<PlannedSession> sessions = <PlannedSession>[];
+    for (final PlannedSession session in plan.sessions) {
+      final List<PlannedItem> items = <PlannedItem>[];
+      for (final PlannedItem item in session.items) {
+        final int sets = clampPlanSets(
+          item.sets + PlanVolumeLimits.periodSetDelta,
+        );
+        if (sets != item.sets) {
+          changed = true;
+        }
+        items.add(item.copyWith(sets: sets));
+      }
+      sessions.add(
+        PlannedSession(
+          weekday: session.weekday,
+          title: session.title,
+          items: items,
+        ),
+      );
+    }
+    if (!changed) {
+      return plan;
+    }
+    return TrainingPlan(
+      goal: plan.goal,
+      daysPerWeek: plan.daysPerWeek,
+      equipment: plan.equipment,
+      sessions: sessions,
+      periodAdjusted: true,
     );
   }
 
@@ -176,5 +264,74 @@ abstract final class PlanGenerator {
       return const <String>['ex_pullup', 'ex_plank'];
     }
     return const <String>['ex_lunge', 'ex_hip_thrust', 'ex_plank'];
+  }
+
+  static List<PlannedSession> _applyVolume({
+    required List<PlannedSession> sessions,
+    required VolumeAdjustment volume,
+    required Set<TrainingPreference> bias,
+  }) {
+    if (volume.sharedDelta == 0 && bias.isEmpty) {
+      return sessions;
+    }
+    return <PlannedSession>[
+      for (final PlannedSession session in sessions)
+        PlannedSession(
+          weekday: session.weekday,
+          title: session.title,
+          items: <PlannedItem>[
+            for (final PlannedItem item in session.items)
+              item.copyWith(
+                sets: volume.setsFor(
+                  item.sets,
+                  preferred: _itemPreferred(item.catalogId, bias),
+                ),
+              ),
+          ],
+        ),
+    ];
+  }
+
+  static bool _itemPreferred(String catalogId, Set<TrainingPreference> bias) {
+    if (bias.isEmpty) {
+      return false;
+    }
+    final TrainingPreference? preference = preferenceForCatalog(catalogId);
+    return preference != null && bias.contains(preference);
+  }
+
+  static List<PlannedSession> _coverPreferences({
+    required List<PlannedSession> sessions,
+    required Set<TrainingPreference> bias,
+    required EquipmentProfile equipment,
+    required TrainingGoal goal,
+  }) {
+    if (bias.isEmpty || sessions.isEmpty) {
+      return sessions;
+    }
+    final List<String> extraIds = missingPreferenceCatalogIds(
+      presentCatalogIds: <String>[
+        for (final PlannedSession session in sessions)
+          for (final PlannedItem item in session.items) item.catalogId,
+      ],
+      preferences: bias.toList(growable: false),
+      equipment: equipment,
+    );
+    final List<PlannedItem> extras = <PlannedItem>[
+      for (final String catalogId in extraIds)
+        _item(catalogId, goal, isMain: false),
+    ];
+    if (extras.isEmpty) {
+      return sessions;
+    }
+    final PlannedSession first = sessions.first;
+    return <PlannedSession>[
+      PlannedSession(
+        weekday: first.weekday,
+        title: first.title,
+        items: <PlannedItem>[...first.items, ...extras],
+      ),
+      ...sessions.skip(1),
+    ];
   }
 }

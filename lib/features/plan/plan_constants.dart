@@ -11,6 +11,7 @@ abstract final class PlanJsonKeys {
   static const String nameZh = 'nameZh';
   static const String sets = 'sets';
   static const String reps = 'reps';
+  static const String periodAdjusted = 'periodAdjusted';
 }
 
 abstract final class PlanWeekdays {
@@ -100,4 +101,28 @@ abstract final class SetPrescriptions {
   static const int strengthAccReps = 8;
   static const int fatLossSets = 3;
   static const int fatLossReps = 12;
+}
+
+/// Volume deltas applied on top of [SetPrescriptions]. Each number is one set.
+abstract final class PlanVolumeLimits {
+  static const int minSets = 2;
+  static const int maxSets = 6;
+  static const int beginnerSetDelta = -1;
+  static const int advancedSetDelta = 1;
+  static const int underweightSetDelta = -1;
+  static const int highBmiBeginnerSetDelta = -1;
+  static const int activeSetDelta = -1;
+  static const int preferenceSetDelta = 1;
+  static const int periodSetDelta = -1;
+
+  /// WHO underweight cut-point. Below this, drop one set.
+  static const double underweightBmi = 18.5;
+
+  /// Chinese adult obesity cut-point. Beginners above this drop one set.
+  static const double highBmi = 28;
+  static const int cmPerMeter = 100;
+}
+
+abstract final class PlanCopy {
+  static const String periodVolumeNote = '经期这几天，组数已略减。';
 }

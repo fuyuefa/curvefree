@@ -5,7 +5,7 @@ import 'package:curvefree/features/nutrition/data/food_catalog.dart';
 import 'package:curvefree/features/nutrition/models/food_models.dart';
 import 'package:curvefree/features/nutrition/nutrition_constants.dart';
 import 'package:curvefree/features/nutrition/nutrition_math.dart';
-import 'package:curvefree/features/nutrition/nutrition_providers.dart';
+import 'package:curvefree/features/nutrition/nutrition_targets.dart';
 import 'package:flutter/material.dart';
 
 class NutritionMacroGrid extends StatelessWidget {
@@ -50,7 +50,8 @@ class NutritionMacroGrid extends StatelessWidget {
               child: _MacroCard(
                 label: NutritionCopy.carb,
                 value: '${totals.carbG.round()}',
-                detail: 'g',
+                detail: '/ ${targets.carbG} g',
+                fraction: _fraction(totals.carbG, targets.carbG),
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
@@ -58,7 +59,8 @@ class NutritionMacroGrid extends StatelessWidget {
               child: _MacroCard(
                 label: NutritionCopy.fat,
                 value: '${totals.fatG.round()}',
-                detail: 'g',
+                detail: '/ ${targets.fatG} g',
+                fraction: _fraction(totals.fatG, targets.fatG),
               ),
             ),
           ],

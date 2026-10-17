@@ -3,6 +3,8 @@ import 'package:curvefree/features/nutrition/data/food_catalog.dart';
 import 'package:curvefree/features/nutrition/data/food_log_repository.dart';
 import 'package:curvefree/features/nutrition/models/food_models.dart';
 import 'package:curvefree/features/nutrition/nutrition_constants.dart';
+import 'package:curvefree/features/nutrition/nutrition_targets.dart';
+import 'package:curvefree/features/onboarding/models/user_profile.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final foodCatalogProvider = FutureProvider<FoodCatalog>((Ref ref) {
@@ -45,33 +47,33 @@ final class FoodLogsController extends AsyncNotifier<List<FoodLogEntry>> {
   }
 }
 
-final class NutritionTargets {
-  const NutritionTargets({required this.calorieKcal, required this.proteinG});
-
-  final int calorieKcal;
-  final int proteinG;
-}
-
 final nutritionTargetsProvider = Provider<NutritionTargets>((Ref ref) {
-  final settings = ref.watch(localStoreSnapshotProvider).valueOrNull?.settings;
-  return NutritionTargets(
-    calorieKcal: _asInt(
-      settings?[NutritionJsonKeys.calorieTarget],
-      NutritionDefaults.calorieTargetKcal,
+  final Map<String, Object?> settings =
+      ref.watch(localStoreSnapshotProvider).valueOrNull?.settings ??
+      const <String, Object?>{};
+  final UserProfile profile = UserProfile.fromSettings(settings);
+  return NutritionTargetMath.resolve(
+    sex: profile.sex,
+    heightCm: profile.heightCm,
+    weightKg: profile.weightKg,
+    activity: profile.activity,
+    goal: profile.goal,
+    explicitCalorieKcal: _optionalInt(
+      settings[NutritionJsonKeys.calorieTarget],
     ),
-    proteinG: _asInt(
-      settings?[NutritionJsonKeys.proteinTarget],
-      NutritionDefaults.proteinTargetG,
-    ),
+    explicitProteinG: _optionalInt(settings[NutritionJsonKeys.proteinTarget]),
   );
 });
 
-int _asInt(Object? value, int fallback) {
+int? _optionalInt(Object? value) {
+  if (value == null) {
+    return null;
+  }
   if (value is int) {
     return value;
   }
   if (value is num) {
     return value.round();
   }
-  return int.tryParse(value?.toString() ?? '') ?? fallback;
+  return int.tryParse(value.toString());
 }
