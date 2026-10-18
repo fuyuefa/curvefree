@@ -32,10 +32,27 @@ abstract final class AppLayout {
   static const double progressEndpoint = 10;
   static const double muscleDot = 28;
   static const double setIndexSize = 28;
+  static const double setCheckSlot = 48;
+  static const double borderWidth = 1;
+  static const double focusBorderWidth = 1.5;
+
+  /// Fraction of the session list viewport where a focused set sits.
+  static const double focusRowAlignment = 0.3;
+  static const int previousColumnFlex = 5;
+  static const int loadColumnFlex = 4;
+  static const int repsColumnFlex = 3;
+  static const double restCountdownSize = 36;
   static const double lottieThumb = 48;
   static const double navIndicatorWidth = 16;
   static const double navIndicatorHeight = 3;
   static const double iconSize = 20;
+}
+
+/// Short motions on the session screen.
+abstract final class AppMotion {
+  /// Rest bar collapse, and how long a set-row waits before scrolling so the
+  /// bar has finished opening.
+  static const Duration restCollapse = Duration(milliseconds: 220);
 }
 
 abstract final class AppFonts {
@@ -100,7 +117,7 @@ abstract final class AppStrings {
   static const String missingWorkout = '这次训练不存在';
   static const String elapsedLabel = '用时';
   static const String restTimerLabel = '组间休息';
-  static const String skipRest = '先不休息';
+  static const String restEnoughNextSet = '够了，下一组';
   static const String workoutBubbleLabel = '训练中';
   static const String workoutPreparing = '准备中';
   static const String setsCountLabel = '组数';
@@ -114,8 +131,11 @@ abstract final class AppStrings {
   static const String setColumn = '组';
   static const String weightColumn = 'kg';
   static const String repsColumn = '次';
+  static const String checkColumn = '✓';
   static const String volumeLabel = '容量';
   static const String lastHintPrefix = '上次';
+  static const String previousEmpty = '—';
+  static const String previousLoadTimes = '×';
   static const String confirm = '确定';
   static const String cancel = '取消';
   static const String exerciseLibrary = '动作库';

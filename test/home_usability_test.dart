@@ -299,7 +299,9 @@ void main() {
 
     expect(find.text('80'), findsOneWidget);
     expect(find.text('6'), findsWidgets);
-    expect(find.textContaining(AppStrings.lastHintPrefix), findsOneWidget);
+    expect(find.text('80×6'), findsOneWidget);
+    expect(find.text(AppStrings.lastHintPrefix), findsOneWidget);
+    expect(find.textContaining('上次 80'), findsNothing);
     expect(find.text('20'), findsNothing);
 
     await tester.tap(find.text(AppStrings.addSet));

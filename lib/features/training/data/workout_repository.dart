@@ -1,6 +1,7 @@
 import 'package:curvefree/core/storage/local_store.dart';
 import 'package:curvefree/core/storage/local_store_snapshot.dart';
 import 'package:curvefree/features/training/models/workout_models.dart';
+import 'package:curvefree/features/training/previous_sets.dart';
 import 'package:curvefree/features/training/training_json_keys.dart';
 import 'package:curvefree/features/training/unfinished_session.dart';
 
@@ -143,5 +144,20 @@ final class WorkoutRepository {
       }
     }
     return null;
+  }
+
+  /// Completed sets from the last time [exerciseName] was logged, by index.
+  ///
+  /// [exceptSessionId] is the open session, so today's rows are not their own history.
+  Future<List<WorkoutSet?>> previousSetsByIndex({
+    required String exerciseName,
+    String? exceptSessionId,
+  }) async {
+    final List<WorkoutSession> sessions = await listNewestFirst();
+    return previousCompletedSetsByIndex(
+      sessionsNewestFirst: sessions,
+      exerciseName: exerciseName,
+      exceptSessionId: exceptSessionId,
+    );
   }
 }
