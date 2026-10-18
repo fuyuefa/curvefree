@@ -440,12 +440,14 @@ void main() {
       await tester.tap(find.byKey(const Key('btn_confirm_finish')));
       await _settle(tester);
       expect(find.byKey(const Key('rest_timer_bar')), findsNothing);
-      expect(find.text(AppStrings.workoutFinished), findsOneWidget);
+      expect(find.byKey(const Key('session_finish_summary')), findsOneWidget);
       expect(find.byKey(const Key('btn_minimize_session')), findsNothing);
       expect(_restFromShell(tester).sessionId, isNull);
       expect(_endedAt(await store.read()), isNotNull);
 
-      await _popRoute(tester);
+      await tester.tap(find.byKey(const Key('btn_back_to_today')));
+      await _settle(tester);
+      expect(find.byKey(const Key('home_today_title')), findsOneWidget);
       expect(find.byKey(const Key('workout_float_bubble')), findsNothing);
       expect((await store.read()).workouts, hasLength(1));
     },

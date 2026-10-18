@@ -57,6 +57,7 @@ class SessionSetRow extends StatefulWidget {
     required this.onToggleCompleted,
     this.previous,
     this.focused = false,
+    this.interactive = true,
     this.onApplyPrevious,
   });
 
@@ -64,6 +65,9 @@ class SessionSetRow extends StatefulWidget {
   final WorkoutSet set;
   final WorkoutSet? previous;
   final bool focused;
+
+  /// Finished sessions keep the numbers visible and ignore taps.
+  final bool interactive;
   final ValueChanged<double> onWeightChanged;
   final ValueChanged<int> onRepsChanged;
   final VoidCallback onToggleCompleted;
@@ -159,24 +163,28 @@ class _SessionSetRowState extends State<SessionSetRow> {
             _PreviousLoad(
               index: index,
               label: formatPreviousLoad(widget.previous),
-              onTap: widget.previous == null ? null : widget.onApplyPrevious,
+              onTap: widget.interactive && widget.previous != null
+                  ? widget.onApplyPrevious
+                  : null,
             ),
             const SizedBox(width: AppSpacing.xs),
             Expanded(
               flex: AppLayout.loadColumnFlex,
               child: _ValueChip(
                 label: formatWeightKg(set.weightKg),
-                onTap: () async {
-                  final double? value = await NumericKeypadSheet.show(
-                    context: context,
-                    kind: NumericFieldKind.weightKg,
-                    initial: set.weightKg,
-                    title: AppStrings.weightColumn,
-                  );
-                  if (value != null) {
-                    widget.onWeightChanged(value);
-                  }
-                },
+                onTap: widget.interactive
+                    ? () async {
+                        final double? value = await NumericKeypadSheet.show(
+                          context: context,
+                          kind: NumericFieldKind.weightKg,
+                          initial: set.weightKg,
+                          title: AppStrings.weightColumn,
+                        );
+                        if (value != null) {
+                          widget.onWeightChanged(value);
+                        }
+                      }
+                    : null,
               ),
             ),
             const SizedBox(width: AppSpacing.xs),
@@ -184,32 +192,42 @@ class _SessionSetRowState extends State<SessionSetRow> {
               flex: AppLayout.repsColumnFlex,
               child: _ValueChip(
                 label: '${set.reps}',
-                onTap: () async {
-                  final double? value = await NumericKeypadSheet.show(
-                    context: context,
-                    kind: NumericFieldKind.reps,
-                    initial: set.reps.toDouble(),
-                    title: AppStrings.repsColumn,
-                  );
-                  if (value != null) {
-                    widget.onRepsChanged(value.round());
-                  }
-                },
+                onTap: widget.interactive
+                    ? () async {
+                        final double? value = await NumericKeypadSheet.show(
+                          context: context,
+                          kind: NumericFieldKind.reps,
+                          initial: set.reps.toDouble(),
+                          title: AppStrings.repsColumn,
+                        );
+                        if (value != null) {
+                          widget.onRepsChanged(value.round());
+                        }
+                      }
+                    : null,
               ),
             ),
             SizedBox(
               width: AppLayout.setCheckSlot,
-              child: IconButton(
-                key: Key('set_complete_$index'),
-                tooltip: done
-                    ? AppStrings.workoutFinished
-                    : AppStrings.setColumn,
-                onPressed: widget.onToggleCompleted,
-                icon: Icon(
-                  done ? Icons.check_circle : Icons.circle_outlined,
-                  color: done ? colors.success : colors.textTertiary,
-                ),
-              ),
+              child: widget.interactive
+                  ? IconButton(
+                      key: Key('set_complete_$index'),
+                      tooltip: done
+                          ? AppStrings.workoutFinished
+                          : AppStrings.setColumn,
+                      onPressed: widget.onToggleCompleted,
+                      icon: Icon(
+                        done ? Icons.check_circle : Icons.circle_outlined,
+                        color: done ? colors.success : colors.textTertiary,
+                      ),
+                    )
+                  : Center(
+                      child: Icon(
+                        key: Key('set_complete_$index'),
+                        done ? Icons.check_circle : Icons.circle_outlined,
+                        color: done ? colors.success : colors.textTertiary,
+                      ),
+                    ),
             ),
           ],
         ),
@@ -287,25 +305,28 @@ class _ValueChip extends StatelessWidget {
   const _ValueChip({required this.label, required this.onTap});
 
   final String label;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final CurveColors colors = CurveColors.of(context);
+    final Widget labelText = Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.sm,
+      ),
+      child: Text(label, style: Theme.of(context).textTheme.titleMedium),
+    );
     return Material(
       color: colors.card,
       borderRadius: BorderRadius.circular(AppRadii.md),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadii.md),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.sm,
-            vertical: AppSpacing.sm,
-          ),
-          child: Text(label, style: Theme.of(context).textTheme.titleMedium),
-        ),
-      ),
+      child: onTap == null
+          ? labelText
+          : InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(AppRadii.md),
+              child: labelText,
+            ),
     );
   }
 }
