@@ -7,8 +7,10 @@ import 'package:curvefree/features/exercises/exercise_catalog.dart';
 import 'package:curvefree/features/exercises/models/catalog_exercise.dart';
 import 'package:curvefree/features/exercises/pages/exercise_library_page.dart';
 import 'package:curvefree/features/training/models/workout_models.dart';
+import 'package:curvefree/features/training/pages/session_finish_summary_page.dart';
 import 'package:curvefree/features/training/rest_timer.dart';
 import 'package:curvefree/features/training/session_done_summary.dart';
+import 'package:curvefree/features/training/session_routes.dart';
 import 'package:curvefree/features/training/set_focus.dart';
 import 'package:curvefree/features/training/set_template.dart';
 import 'package:curvefree/features/training/training_providers.dart';
@@ -172,14 +174,15 @@ class _SessionScaffoldState extends ConsumerState<_SessionScaffold> {
                   ),
                   const SizedBox(height: AppSpacing.sm),
                 ],
-                OutlinedButton.icon(
-                  key: const Key('btn_add_exercise'),
-                  onPressed: () {
-                    unawaited(_addExercise(context, ref));
-                  },
-                  icon: const Icon(Icons.add),
-                  label: const Text(AppStrings.addExercise),
-                ),
+                if (!session.isFinished)
+                  OutlinedButton.icon(
+                    key: const Key('btn_add_exercise'),
+                    onPressed: () {
+                      unawaited(_addExercise(context, ref));
+                    },
+                    icon: const Icon(Icons.add),
+                    label: const Text(AppStrings.addExercise),
+                  ),
               ],
             ),
           ),
@@ -231,22 +234,16 @@ class _SessionScaffoldState extends ConsumerState<_SessionScaffold> {
   }
 
   Future<void> _finishAfterConfirm(BuildContext context, WidgetRef ref) async {
-    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
-    final DateTime now = ref.read(restTimerProvider.notifier).clock();
-    final String summary = formatSessionDoneBody(
-      sessionDoneSummary(
-        session: session,
-        now: now,
-        rest: ref.read(restTimerProvider).restTotalFor(session.id, now),
-      ),
-    );
     final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           key: const Key('dialog_finish_session'),
           title: const Text(AppStrings.finishSessionConfirmTitle),
-          content: Text(summary, key: const Key('session_done_body')),
+          content: const Text(
+            AppStrings.finishSessionConfirmBody,
+            key: Key('finish_session_confirm_body'),
+          ),
           actions: <Widget>[
             TextButton(
               key: const Key('btn_keep_logging_sets'),
@@ -265,9 +262,27 @@ class _SessionScaffoldState extends ConsumerState<_SessionScaffold> {
     if (confirmed != true || !context.mounted) {
       return;
     }
-    await ref.read(workoutSessionsProvider.notifier).finish(session.id);
-    ref.read(restTimerProvider.notifier).clearSession(session.id);
-    _showSessionMessage(messenger, AppStrings.workoutCompleted);
+    final DateTime now = ref.read(restTimerProvider.notifier).clock();
+    final SessionDoneSummary summary = sessionDoneSummary(
+      session: session,
+      now: now,
+      rest: ref.read(restTimerProvider).restTotalFor(session.id, now),
+    );
+    final String sessionId = session.id;
+    final NavigatorState navigator = Navigator.of(context);
+    await ref.read(workoutSessionsProvider.notifier).finish(sessionId);
+    ref.read(restTimerProvider.notifier).clearSession(sessionId);
+    if (!context.mounted) {
+      return;
+    }
+    await navigator.push(
+      MaterialPageRoute<void>(
+        settings: RouteSettings(name: SessionRoutes.doneNameFor(sessionId)),
+        builder: (BuildContext context) {
+          return SessionFinishSummaryPage(summary: summary);
+        },
+      ),
+    );
   }
 
   Future<void> _deleteAfterConfirm(BuildContext context, WidgetRef ref) async {
@@ -333,12 +348,6 @@ class _SessionScaffoldState extends ConsumerState<_SessionScaffold> {
       );
     });
   }
-}
-
-void _showSessionMessage(ScaffoldMessengerState messenger, String message) {
-  messenger
-    ..clearSnackBars()
-    ..showSnackBar(SnackBar(content: Text(message)));
 }
 
 class _ExerciseCard extends ConsumerStatefulWidget {
@@ -452,20 +461,22 @@ class _ExerciseCardState extends ConsumerState<_ExerciseCard> {
                   );
                 },
           ),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () {
-                unawaited(_addSet(ref));
-              },
-              icon: const Icon(Icons.add, size: 18),
-              label: const Text(AppStrings.addSet),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: colors.primary,
-                side: BorderSide(color: colors.primary),
+          if (!session.isFinished)
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                key: const Key('btn_add_set'),
+                onPressed: () {
+                  unawaited(_addSet(ref));
+                },
+                icon: const Icon(Icons.add, size: 18),
+                label: const Text(AppStrings.addSet),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: colors.primary,
+                  side: BorderSide(color: colors.primary),
+                ),
               ),
             ),
-          ),
         ],
       ),
     );
@@ -479,6 +490,7 @@ class _ExerciseCardState extends ConsumerState<_ExerciseCard> {
       set: set,
       previous: previous,
       focused: widget.focusedSetId == set.id,
+      interactive: !session.isFinished,
       onWeightChanged: (double value) {
         unawaited(
           _patchFields(

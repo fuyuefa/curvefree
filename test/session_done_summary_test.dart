@@ -37,6 +37,11 @@ void main() {
     final String body = formatSessionDoneBody(summary);
     expect(body, '组数 2\n容量 1000 kg\n总时长 45:00\n组间休息 10:00 · 不含休息 35:00');
     expect(body.contains('。'), isFalse);
+    final SessionFinishFigures figures = sessionFinishFigures(summary);
+    expect(figures.sets, '2');
+    expect(figures.volumeKg, '1000');
+    expect(figures.wallClock, '45:00');
+    expect(figures.rest, '10:00');
   });
 
   test('omits the clock before it starts and clamps rest past the wall', () {
@@ -53,6 +58,13 @@ void main() {
       ),
       '组数 0\n容量 0 kg',
     );
+    final SessionFinishFigures quiet = sessionFinishFigures(
+      sessionDoneSummary(session: empty, now: DateTime(2026, 10, 17, 9)),
+    );
+    expect(quiet.sets, '0');
+    expect(quiet.volumeKg, '0');
+    expect(quiet.wallClock, '00:00');
+    expect(quiet.rest, '00:00');
 
     final DateTime origin = DateTime(2026, 10, 17, 8);
     final WorkoutSession worked = WorkoutSession(

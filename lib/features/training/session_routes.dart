@@ -4,8 +4,12 @@ import 'package:flutter/material.dart';
 /// Route names so the shell can tell a session page from other pushes.
 abstract final class SessionRoutes {
   static const String prefix = '/session/';
+  static const String doneSuffix = '/done';
 
   static String nameFor(String sessionId) => '$prefix$sessionId';
+
+  static String doneNameFor(String sessionId) =>
+      '${nameFor(sessionId)}$doneSuffix';
 }
 
 MaterialPageRoute<void> sessionPageRoute(String sessionId) {

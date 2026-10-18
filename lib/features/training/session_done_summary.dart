@@ -88,3 +88,29 @@ Duration? _knownRest(Duration? rest) {
   }
   return rest;
 }
+
+/// Four numerals on the finish summary.
+///
+/// A missing clock or rest is shown as zero so the row always has four cells.
+final class SessionFinishFigures {
+  const SessionFinishFigures({
+    required this.sets,
+    required this.volumeKg,
+    required this.wallClock,
+    required this.rest,
+  });
+
+  final String sets;
+  final String volumeKg;
+  final String wallClock;
+  final String rest;
+}
+
+SessionFinishFigures sessionFinishFigures(SessionDoneSummary summary) {
+  return SessionFinishFigures(
+    sets: '${summary.completedSets}',
+    volumeKg: summary.volumeKg.toStringAsFixed(0),
+    wallClock: ElapsedFormat.format(summary.wallClock ?? Duration.zero),
+    rest: ElapsedFormat.format(summary.rest ?? Duration.zero),
+  );
+}

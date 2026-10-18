@@ -42,6 +42,9 @@ abstract final class AppLayout {
   static const int loadColumnFlex = 4;
   static const int repsColumnFlex = 3;
   static const double restCountdownSize = 36;
+
+  /// Numerals on the finish summary.
+  static const double summaryValueSize = 32;
   static const double lottieThumb = 48;
   static const double navIndicatorWidth = 16;
   static const double navIndicatorHeight = 3;
@@ -97,9 +100,13 @@ abstract final class AppStrings {
   static const String finishWorkout = '完成训练';
   static const String finishThisSession = '完成本次训练';
   static const String finishSessionConfirmTitle = '完成这次训练？';
+  static const String finishSessionConfirmBody = '结束后看本堂小结';
   static const String finishSessionConfirmAction = '完成';
   static const String keepLoggingSets = '继续记组';
   static const String workoutCompleted = '训练已完成';
+  static const String sessionDoneTitle = '本堂练完了';
+  static const String backToToday = '回到今日';
+  static const String reviewThisSession = '再看看这堂';
   static const String deleteSessionTitle = '删除这次训练？';
   static const String deleteSessionBody = '此操作无法撤销';
   static const String deleteSessionAction = '删除';

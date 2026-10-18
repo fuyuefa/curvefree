@@ -73,16 +73,8 @@ void main() {
 
     expect(find.byKey(const Key('dialog_finish_session')), findsOneWidget);
     expect(find.text(AppStrings.finishSessionConfirmTitle), findsOneWidget);
-    expect(find.byKey(const Key('session_done_body')), findsOneWidget);
-    expect(
-      find.textContaining('${AppStrings.setsCountLabel} 1'),
-      findsOneWidget,
-    );
-    expect(
-      find.textContaining('${AppStrings.volumeLabel} 500'),
-      findsOneWidget,
-    );
-    expect(find.textContaining(AppStrings.wallClockLabel), findsOneWidget);
+    expect(find.text(AppStrings.finishSessionConfirmBody), findsOneWidget);
+    expect(find.byKey(const Key('session_finish_summary')), findsNothing);
     expect(
       (await store.read()).workouts.single[TrainingJsonKeys.endedAt],
       isNull,
@@ -108,10 +100,16 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.text(AppStrings.workoutCompleted), findsOneWidget);
+    expect(find.byKey(const Key('session_finish_summary')), findsOneWidget);
+    expect(find.text(AppStrings.sessionDoneTitle), findsOneWidget);
+    expect(find.text(AppStrings.workoutCompleted), findsNothing);
     expect(find.byKey(const Key('btn_finish_workout')), findsNothing);
-    expect(find.text(AppStrings.workoutFinished), findsOneWidget);
-    expect(find.text(exerciseName), findsOneWidget);
+    expect(
+      ModalRoute.of(
+        tester.element(find.byKey(const Key('session_finish_summary'))),
+      )?.isCurrent,
+      isTrue,
+    );
     expect(
       (await store.read()).workouts.single[TrainingJsonKeys.endedAt],
       isNotNull,
