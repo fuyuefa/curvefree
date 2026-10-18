@@ -53,3 +53,10 @@ tooling/qa/node_modules/
 
 # Local Flutter SDK hints
 .flutter-plugins
+
+# Secrets and local service config
+.env
+.env.*
+!.env.example
+google-services.json
+**/GoogleService-Info.plist
