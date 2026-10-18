@@ -107,6 +107,9 @@ void main() {
       '1:02:00',
     );
     expect(ElapsedFormat.format(const Duration(seconds: -3)), '00:00');
+    expect(ElapsedFormat.countdown(const Duration(seconds: 45)), '0:45');
+    expect(ElapsedFormat.countdown(const Duration(seconds: 90)), '1:30');
+    expect(ElapsedFormat.countdown(const Duration(seconds: -3)), '0:00');
   });
 
   test('catalog exercises map onto muscle dots', () {

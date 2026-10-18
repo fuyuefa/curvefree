@@ -114,6 +114,17 @@ class _SessionScaffoldState extends ConsumerState<_SessionScaffold> {
               : AppStrings.workoutPreparing,
         ),
         actions: <Widget>[
+          if (!session.isFinished)
+            TextButton(
+              key: const Key('btn_minimize_session'),
+              onPressed: () {
+                final NavigatorState navigator = Navigator.of(context);
+                if (navigator.canPop()) {
+                  navigator.pop();
+                }
+              },
+              child: const Text(AppStrings.minimizeSession),
+            ),
           IconButton(
             key: const Key('btn_delete_workout'),
             tooltip: AppStrings.deleteWorkout,

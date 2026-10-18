@@ -118,6 +118,8 @@ abstract final class AppStrings {
   static const String elapsedLabel = '用时';
   static const String restTimerLabel = '组间休息';
   static const String restEnoughNextSet = '够了，下一组';
+  static const String restBubbleLabel = '休息';
+  static const String minimizeSession = '收起来';
   static const String workoutBubbleLabel = '训练中';
   static const String workoutPreparing = '准备中';
   static const String setsCountLabel = '组数';

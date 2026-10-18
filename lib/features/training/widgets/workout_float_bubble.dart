@@ -4,7 +4,6 @@ import 'package:curvefree/app/shell/shell_navigation.dart';
 import 'package:curvefree/app/theme/curve_colors.dart';
 import 'package:curvefree/app/theme/curve_surfaces.dart';
 import 'package:curvefree/core/constants/app_tokens.dart';
-import 'package:curvefree/features/training/elapsed_format.dart';
 import 'package:curvefree/features/training/models/workout_models.dart';
 import 'package:curvefree/features/training/rest_timer.dart';
 import 'package:curvefree/features/training/session_routes.dart';
@@ -70,10 +69,17 @@ class _WorkoutFloatBubbleState extends ConsumerState<WorkoutFloatBubble> {
       safeBottom: MediaQuery.paddingOf(context).bottom,
     );
     final DateTime origin = unfinished.timerOrigin ?? unfinished.startedAt;
-    final String elapsed = ElapsedFormat.format(
-      DateTime.now().difference(origin),
+    final RestTimerState rest = ref.watch(restTimerProvider);
+    final DateTime now = ref.read(restTimerProvider.notifier).clock();
+    final WorkoutBubbleLines lines = workoutBubbleLines(
+      elapsed: DateTime.now().difference(origin),
+      resting: rest.isRunningFor(unfinished.id, now),
+      restRemaining: rest.remainingAt(now),
     );
-    final String label = '${AppStrings.workoutBubbleLabel} $elapsed';
+    final TextStyle? primaryStyle = Theme.of(context).textTheme.titleMedium
+        ?.copyWith(color: colors.primary);
+    final TextStyle? elapsedStyle = Theme.of(context).textTheme.labelSmall
+        ?.copyWith(color: colors.textSecondary);
     return Positioned(
       left: AppSpacing.md,
       bottom: bottom,
@@ -105,10 +111,24 @@ class _WorkoutFloatBubbleState extends ConsumerState<WorkoutFloatBubble> {
                     color: colors.primary,
                   ),
                   const SizedBox(width: AppSpacing.xs),
-                  Text(
-                    label,
-                    style: Theme.of(context).textTheme.titleMedium
-                        ?.copyWith(color: colors.primary),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Text(
+                        lines.primary,
+                        key: const Key('workout_float_primary'),
+                        style: primaryStyle,
+                      ),
+                      if (lines.secondary != null) ...<Widget>[
+                        const SizedBox(height: AppSpacing.xxs),
+                        Text(
+                          lines.secondary!,
+                          key: const Key('workout_float_elapsed'),
+                          style: elapsedStyle,
+                        ),
+                      ],
+                    ],
                   ),
                 ],
               ),
@@ -119,29 +139,27 @@ class _WorkoutFloatBubbleState extends ConsumerState<WorkoutFloatBubble> {
     );
   }
 
-  Future<void> _resume(String fallbackId) async {
-    final WorkoutSession opened = await ref
-        .read(workoutSessionsProvider.notifier)
-        .startSession();
+  Future<void> _resume(String sessionId) async {
     final NavigatorState? navigator = widget.navigatorKey.currentState;
     if (!mounted || navigator == null) {
       return;
     }
-    final String routeName = SessionRoutes.nameFor(opened.id);
     final ShellNavigation navigation = ref.read(shellNavigationProvider);
-    if (navigation.topPageRouteName == routeName) {
-      return;
+    final FloatResume plan = planFloatResume(
+      sessionId: sessionId,
+      topPageRouteName: navigation.topPageRouteName,
+      pageRouteNames: navigation.pageRouteNames,
+    );
+    switch (plan.kind) {
+      case FloatResumeKind.stay:
+        return;
+      case FloatResumeKind.popToSession:
+        navigator.popUntil((Route<dynamic> route) {
+          return route.settings.name == plan.routeName || route.isFirst;
+        });
+        return;
+      case FloatResumeKind.pushSession:
+        unawaited(navigator.push(sessionPageRoute(sessionId)));
     }
-    if (navigation.containsPage(routeName) ||
-        navigation.containsPage(SessionRoutes.nameFor(fallbackId))) {
-      final String target = navigation.containsPage(routeName)
-          ? routeName
-          : SessionRoutes.nameFor(fallbackId);
-      navigator.popUntil((Route<dynamic> route) {
-        return route.settings.name == target || route.isFirst;
-      });
-      return;
-    }
-    await navigator.push(sessionPageRoute(opened.id));
   }
 }
