@@ -9,6 +9,7 @@ import 'package:curvefree/features/exercises/pages/exercise_library_page.dart';
 import 'package:curvefree/features/training/models/workout_models.dart';
 import 'package:curvefree/features/training/rest_timer.dart';
 import 'package:curvefree/features/training/session_done_summary.dart';
+import 'package:curvefree/features/training/set_focus.dart';
 import 'package:curvefree/features/training/set_template.dart';
 import 'package:curvefree/features/training/training_providers.dart';
 import 'package:curvefree/features/training/widgets/rest_timer_bar.dart';
@@ -66,6 +67,7 @@ class _SessionScaffold extends ConsumerStatefulWidget {
 
 class _SessionScaffoldState extends ConsumerState<_SessionScaffold> {
   bool _promptedForExercise = false;
+  String? _focusedSetId;
 
   WorkoutSession get session => widget.session;
 
@@ -144,7 +146,19 @@ class _SessionScaffoldState extends ConsumerState<_SessionScaffold> {
               children: <Widget>[
                 for (final WorkoutExercise exercise
                     in session.exercises) ...<Widget>[
-                  _ExerciseCard(session: session, exercise: exercise),
+                  _ExerciseCard(
+                    session: session,
+                    exercise: exercise,
+                    focusedSetId: _focusedSetId,
+                    onSetChecked: (int index) {
+                      setState(() {
+                        _focusedSetId = nextIncompleteSetId(
+                          sets: exercise.sets,
+                          completedIndex: index,
+                        );
+                      });
+                    },
+                  ),
                   const SizedBox(height: AppSpacing.sm),
                 ],
                 OutlinedButton.icon(
@@ -158,19 +172,26 @@ class _SessionScaffoldState extends ConsumerState<_SessionScaffold> {
               ],
             ),
           ),
-          if (showRest && !session.isFinished)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.md,
-                0,
-                AppSpacing.md,
-                AppSpacing.xs,
-              ),
-              child: RestTimerBar(
-                sessionId: session.id,
-                exerciseName: restExerciseName,
-              ),
-            ),
+          AnimatedSize(
+            duration: AppMotion.restCollapse,
+            curve: Curves.easeOutCubic,
+            alignment: Alignment.topCenter,
+            clipBehavior: Clip.hardEdge,
+            child: showRest && !session.isFinished
+                ? Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.md,
+                      0,
+                      AppSpacing.md,
+                      AppSpacing.xs,
+                    ),
+                    child: RestTimerBar(
+                      sessionId: session.id,
+                      exerciseName: restExerciseName,
+                    ),
+                  )
+                : const SizedBox(width: double.infinity),
+          ),
           if (!session.isFinished)
             SafeArea(
               top: false,
@@ -309,14 +330,55 @@ void _showSessionMessage(ScaffoldMessengerState messenger, String message) {
     ..showSnackBar(SnackBar(content: Text(message)));
 }
 
-class _ExerciseCard extends ConsumerWidget {
-  const _ExerciseCard({required this.session, required this.exercise});
+class _ExerciseCard extends ConsumerStatefulWidget {
+  const _ExerciseCard({
+    required this.session,
+    required this.exercise,
+    required this.focusedSetId,
+    required this.onSetChecked,
+  });
 
   final WorkoutSession session;
   final WorkoutExercise exercise;
+  final String? focusedSetId;
+  final ValueChanged<int> onSetChecked;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_ExerciseCard> createState() => _ExerciseCardState();
+}
+
+class _ExerciseCardState extends ConsumerState<_ExerciseCard> {
+  late Future<List<WorkoutSet?>> _previousSets;
+
+  WorkoutSession get session => widget.session;
+  WorkoutExercise get exercise => widget.exercise;
+
+  @override
+  void initState() {
+    super.initState();
+    _previousSets = _loadPrevious();
+  }
+
+  @override
+  void didUpdateWidget(_ExerciseCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.exercise.name != exercise.name ||
+        oldWidget.session.id != session.id) {
+      _previousSets = _loadPrevious();
+    }
+  }
+
+  Future<List<WorkoutSet?>> _loadPrevious() {
+    return ref
+        .read(workoutRepositoryProvider)
+        .previousSetsByIndex(
+          exerciseName: exercise.name,
+          exceptSessionId: session.id,
+        );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final CurveColors colors = CurveColors.of(context);
     final CatalogExercise? catalog = ExerciseCatalog.byId(exercise.catalogId);
     return Container(
@@ -358,70 +420,27 @@ class _ExerciseCard extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.xs),
-          FutureBuilder<WorkoutSet?>(
-            future: ref
-                .read(workoutRepositoryProvider)
-                .lastCompletedSet(
-                  exerciseName: exercise.name,
-                  exceptSessionId: session.id,
-                ),
-            builder: (BuildContext context, AsyncSnapshot<WorkoutSet?> snap) {
-              final WorkoutSet? hint = snap.data;
-              if (hint == null) {
-                return const SizedBox.shrink();
-              }
-              return Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                child: Text(
-                  '${AppStrings.lastHintPrefix} ${hint.weightKg} ${AppStrings.weightColumn} × ${hint.reps}',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              );
-            },
-          ),
-          const Row(
-            children: <Widget>[
-              SizedBox(
-                width: AppLayout.setIndexSize,
-                child: Text(AppStrings.setColumn),
-              ),
-              SizedBox(width: AppSpacing.xs),
-              Expanded(child: Text(AppStrings.weightColumn)),
-              SizedBox(width: AppSpacing.xs),
-              Expanded(child: Text(AppStrings.repsColumn)),
-              SizedBox(width: 48),
-            ],
-          ),
+          const SessionSetHeader(),
           const SizedBox(height: AppSpacing.xs),
-          for (int i = 0; i < exercise.sets.length; i++)
-            SessionSetRow(
-              index: i,
-              set: exercise.sets[i],
-              onWeightChanged: (double value) {
-                unawaited(
-                  _patch(ref, exercise.sets[i].copyWith(weightKg: value)),
-                );
-              },
-              onRepsChanged: (int value) {
-                unawaited(_patch(ref, exercise.sets[i].copyWith(reps: value)));
-              },
-              onToggleCompleted: () {
-                final WorkoutSet current = exercise.sets[i];
-                final bool markCompleted = !current.completed;
-                unawaited(
-                  _patch(ref, current.copyWith(completed: markCompleted)),
-                );
-                if (markCompleted && !session.isFinished) {
-                  ref
-                      .read(restTimerProvider.notifier)
-                      .restart(
-                        sessionId: session.id,
-                        exerciseId: exercise.id,
-                        setId: current.id,
-                      );
-                }
-              },
-            ),
+          FutureBuilder<List<WorkoutSet?>>(
+            future: _previousSets,
+            builder:
+                (BuildContext context, AsyncSnapshot<List<WorkoutSet?>> snap) {
+                  final List<WorkoutSet?> previousSets =
+                      snap.data ?? const <WorkoutSet?>[];
+                  return Column(
+                    children: <Widget>[
+                      for (int i = 0; i < exercise.sets.length; i++)
+                        _setRow(
+                          index: i,
+                          previous: i < previousSets.length
+                              ? previousSets[i]
+                              : null,
+                        ),
+                    ],
+                  );
+                },
+          ),
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
@@ -438,6 +457,65 @@ class _ExerciseCard extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  SessionSetRow _setRow({required int index, required WorkoutSet? previous}) {
+    final WorkoutSet set = exercise.sets[index];
+    return SessionSetRow(
+      key: ValueKey<String>(set.id),
+      index: index,
+      set: set,
+      previous: previous,
+      focused: widget.focusedSetId == set.id,
+      onWeightChanged: (double value) {
+        unawaited(
+          _patchFields(
+            set.id,
+            (WorkoutSet current) => current.copyWith(weightKg: value),
+          ),
+        );
+      },
+      onRepsChanged: (int value) {
+        unawaited(
+          _patchFields(
+            set.id,
+            (WorkoutSet current) => current.copyWith(reps: value),
+          ),
+        );
+      },
+      onApplyPrevious: previous == null
+          ? null
+          : () {
+              final double weightKg = previous.weightKg;
+              final int reps = previous.reps;
+              unawaited(
+                _patchFields(
+                  set.id,
+                  (WorkoutSet current) =>
+                      current.copyWith(weightKg: weightKg, reps: reps),
+                ),
+              );
+            },
+      onToggleCompleted: () {
+        final bool markCompleted = !set.completed;
+        unawaited(
+          _patchFields(
+            set.id,
+            (WorkoutSet current) => current.copyWith(completed: markCompleted),
+          ),
+        );
+        if (markCompleted && !session.isFinished) {
+          ref
+              .read(restTimerProvider.notifier)
+              .restart(
+                sessionId: session.id,
+                exerciseId: exercise.id,
+                setId: set.id,
+              );
+          widget.onSetChecked(index);
+        }
+      },
     );
   }
 
@@ -469,7 +547,12 @@ class _ExerciseCard extends ConsumerWidget {
     });
   }
 
-  Future<void> _patch(WidgetRef ref, WorkoutSet nextSet) {
+  /// Edits one set on the session currently stored, so a slower tap cannot
+  /// overwrite a completion that already landed.
+  Future<void> _patchFields(
+    String setId,
+    WorkoutSet Function(WorkoutSet current) update,
+  ) {
     final String exerciseId = exercise.id;
     return ref.read(workoutSessionsProvider.notifier).edit(session.id, (
       WorkoutSession current,
@@ -483,7 +566,7 @@ class _ExerciseCard extends ConsumerWidget {
               return item.copyWith(
                 sets: item.sets
                     .map(
-                      (WorkoutSet set) => set.id == nextSet.id ? nextSet : set,
+                      (WorkoutSet set) => set.id == setId ? update(set) : set,
                     )
                     .toList(growable: false),
               );

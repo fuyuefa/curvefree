@@ -1,11 +1,53 @@
+import 'dart:async';
+
 import 'package:curvefree/app/theme/curve_colors.dart';
 import 'package:curvefree/core/constants/app_tokens.dart';
 import 'package:curvefree/features/training/models/workout_models.dart';
-import 'package:curvefree/features/training/training_json_keys.dart';
+import 'package:curvefree/features/training/previous_sets.dart';
 import 'package:curvefree/features/training/widgets/numeric_keypad_sheet.dart';
 import 'package:flutter/material.dart';
 
-class SessionSetRow extends StatelessWidget {
+class SessionSetHeader extends StatelessWidget {
+  const SessionSetHeader({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final TextStyle? style = Theme.of(context).textTheme.bodyMedium;
+    return Row(
+      children: <Widget>[
+        SizedBox(
+          width: AppLayout.setIndexSize,
+          child: Text(AppStrings.setColumn, style: style),
+        ),
+        const SizedBox(width: AppSpacing.xs),
+        Expanded(
+          flex: AppLayout.previousColumnFlex,
+          child: Text(AppStrings.lastHintPrefix, style: style),
+        ),
+        const SizedBox(width: AppSpacing.xs),
+        Expanded(
+          flex: AppLayout.loadColumnFlex,
+          child: Text(AppStrings.weightColumn, style: style),
+        ),
+        const SizedBox(width: AppSpacing.xs),
+        Expanded(
+          flex: AppLayout.repsColumnFlex,
+          child: Text(AppStrings.repsColumn, style: style),
+        ),
+        SizedBox(
+          width: AppLayout.setCheckSlot,
+          child: Text(
+            AppStrings.checkColumn,
+            textAlign: TextAlign.center,
+            style: style,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class SessionSetRow extends StatefulWidget {
   const SessionSetRow({
     super.key,
     required this.index,
@@ -13,18 +55,81 @@ class SessionSetRow extends StatelessWidget {
     required this.onWeightChanged,
     required this.onRepsChanged,
     required this.onToggleCompleted,
+    this.previous,
+    this.focused = false,
+    this.onApplyPrevious,
   });
 
   final int index;
   final WorkoutSet set;
+  final WorkoutSet? previous;
+  final bool focused;
   final ValueChanged<double> onWeightChanged;
   final ValueChanged<int> onRepsChanged;
   final VoidCallback onToggleCompleted;
+  final VoidCallback? onApplyPrevious;
+
+  @override
+  State<SessionSetRow> createState() => _SessionSetRowState();
+}
+
+class _SessionSetRowState extends State<SessionSetRow> {
+  Timer? _revealTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.focused) {
+      _revealFocusedRow();
+    }
+  }
+
+  @override
+  void didUpdateWidget(SessionSetRow oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.focused && !oldWidget.focused) {
+      _revealFocusedRow();
+    }
+  }
+
+  @override
+  void dispose() {
+    _revealTimer?.cancel();
+    super.dispose();
+  }
+
+  /// Waits for the rest bar to finish opening, then scrolls.
+  ///
+  /// The bar grows over [AppMotion.restCollapse]. Scrolling before that
+  /// measures the taller list and leaves the next set under the bar.
+  void _revealFocusedRow() {
+    _revealTimer?.cancel();
+    _revealTimer = Timer(AppMotion.restCollapse, () {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !widget.focused) {
+          return;
+        }
+        final ScrollableState? scrollable = Scrollable.maybeOf(context);
+        if (scrollable == null || !scrollable.position.hasContentDimensions) {
+          return;
+        }
+        unawaited(
+          Scrollable.ensureVisible(
+            context,
+            alignment: AppLayout.focusRowAlignment,
+          ),
+        );
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final CurveColors colors = CurveColors.of(context);
+    final WorkoutSet set = widget.set;
     final bool done = set.completed;
+    final bool highlight = widget.focused && !done;
+    final int index = widget.index;
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.xs),
       child: Container(
@@ -36,15 +141,31 @@ class SessionSetRow extends StatelessWidget {
         decoration: BoxDecoration(
           color: done ? colors.successSoft : colors.muted,
           borderRadius: BorderRadius.circular(AppRadii.cta),
-          border: Border.all(color: done ? colors.success : colors.border),
+          border: Border.all(
+            color: done
+                ? colors.success
+                : highlight
+                ? colors.primary
+                : colors.border,
+            width: highlight
+                ? AppLayout.focusBorderWidth
+                : AppLayout.borderWidth,
+          ),
         ),
         child: Row(
           children: <Widget>[
             _IndexBadge(index: index + 1, completed: done),
             const SizedBox(width: AppSpacing.xs),
+            _PreviousLoad(
+              index: index,
+              label: formatPreviousLoad(widget.previous),
+              onTap: widget.previous == null ? null : widget.onApplyPrevious,
+            ),
+            const SizedBox(width: AppSpacing.xs),
             Expanded(
+              flex: AppLayout.loadColumnFlex,
               child: _ValueChip(
-                label: _weightLabel(set.weightKg),
+                label: formatWeightKg(set.weightKg),
                 onTap: () async {
                   final double? value = await NumericKeypadSheet.show(
                     context: context,
@@ -53,13 +174,14 @@ class SessionSetRow extends StatelessWidget {
                     title: AppStrings.weightColumn,
                   );
                   if (value != null) {
-                    onWeightChanged(value);
+                    widget.onWeightChanged(value);
                   }
                 },
               ),
             ),
             const SizedBox(width: AppSpacing.xs),
             Expanded(
+              flex: AppLayout.repsColumnFlex,
               child: _ValueChip(
                 label: '${set.reps}',
                 onTap: () async {
@@ -70,18 +192,23 @@ class SessionSetRow extends StatelessWidget {
                     title: AppStrings.repsColumn,
                   );
                   if (value != null) {
-                    onRepsChanged(value.round());
+                    widget.onRepsChanged(value.round());
                   }
                 },
               ),
             ),
-            IconButton(
-              key: Key('set_complete_$index'),
-              tooltip: done ? AppStrings.workoutFinished : AppStrings.setColumn,
-              onPressed: onToggleCompleted,
-              icon: Icon(
-                done ? Icons.check_circle : Icons.circle_outlined,
-                color: done ? colors.success : colors.textTertiary,
+            SizedBox(
+              width: AppLayout.setCheckSlot,
+              child: IconButton(
+                key: Key('set_complete_$index'),
+                tooltip: done
+                    ? AppStrings.workoutFinished
+                    : AppStrings.setColumn,
+                onPressed: widget.onToggleCompleted,
+                icon: Icon(
+                  done ? Icons.check_circle : Icons.circle_outlined,
+                  color: done ? colors.success : colors.textTertiary,
+                ),
               ),
             ),
           ],
@@ -91,11 +218,41 @@ class SessionSetRow extends StatelessWidget {
   }
 }
 
-String _weightLabel(double weightKg) {
-  final int digits = weightKg == weightKg.roundToDouble()
-      ? 0
-      : TrainingDefaults.weightFractionDigits;
-  return weightKg.toStringAsFixed(digits);
+class _PreviousLoad extends StatelessWidget {
+  const _PreviousLoad({
+    required this.index,
+    required this.label,
+    required this.onTap,
+  });
+
+  final int index;
+  final String label;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final CurveColors colors = CurveColors.of(context);
+    final Text text = Text(
+      label,
+      key: onTap == null ? Key('previous_set_$index') : null,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+        color: onTap == null ? colors.textTertiary : colors.textSecondary,
+      ),
+    );
+    return Expanded(
+      flex: AppLayout.previousColumnFlex,
+      child: onTap == null
+          ? Align(alignment: Alignment.centerLeft, child: text)
+          : InkWell(
+              key: Key('previous_set_$index'),
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(AppRadii.md),
+              child: Align(alignment: Alignment.centerLeft, child: text),
+            ),
+    );
+  }
 }
 
 class _IndexBadge extends StatelessWidget {
