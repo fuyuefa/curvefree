@@ -15,4 +15,14 @@ abstract final class ElapsedFormat {
     }
     return '$mm:$ss';
   }
+
+  /// Rest left on the float. Minutes are not zero-padded: `0:45`.
+  static String countdown(Duration duration) {
+    final Duration safe = duration.isNegative ? Duration.zero : duration;
+    final int totalSeconds = safe.inSeconds;
+    final int minutes = totalSeconds ~/ secondsPerMinute;
+    final int seconds = totalSeconds.remainder(secondsPerMinute);
+    final String ss = seconds.toString().padLeft(padWidth, '0');
+    return '$minutes:$ss';
+  }
 }

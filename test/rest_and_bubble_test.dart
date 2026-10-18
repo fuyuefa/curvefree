@@ -276,6 +276,65 @@ void main() {
       expect(legacy.isTimerRunning, isTrue);
     });
 
+    test('rest countdown replaces the elapsed primary line', () {
+      const Duration elapsed = Duration(minutes: 32, seconds: 10);
+      final WorkoutBubbleLines training = workoutBubbleLines(
+        elapsed: elapsed,
+        resting: false,
+        restRemaining: const Duration(seconds: 45),
+      );
+      expect(training.primary, '训练中 32:10');
+      expect(training.secondary, isNull);
+
+      final WorkoutBubbleLines rest = workoutBubbleLines(
+        elapsed: elapsed,
+        resting: true,
+        restRemaining: const Duration(seconds: 45),
+      );
+      expect(rest.primary, '休息 0:45');
+      expect(rest.secondary, '训练中 32:10');
+
+      final WorkoutBubbleLines done = workoutBubbleLines(
+        elapsed: elapsed,
+        resting: true,
+        restRemaining: Duration.zero,
+      );
+      expect(done.primary, '训练中 32:10');
+      expect(done.secondary, isNull);
+    });
+
+    test('float resume targets the session route and does not start one', () {
+      const String sessionId = 'w-open';
+      final String routeName = SessionRoutes.nameFor(sessionId);
+      expect(
+        planFloatResume(
+          sessionId: sessionId,
+          topPageRouteName: routeName,
+          pageRouteNames: <String?>[Navigator.defaultRouteName, routeName],
+        ).kind,
+        FloatResumeKind.stay,
+      );
+      final FloatResume buried = planFloatResume(
+        sessionId: sessionId,
+        topPageRouteName: '/exercises',
+        pageRouteNames: <String?>[
+          Navigator.defaultRouteName,
+          routeName,
+          '/exercises',
+        ],
+      );
+      expect(buried.kind, FloatResumeKind.popToSession);
+      expect(buried.routeName, routeName);
+      final FloatResume missing = planFloatResume(
+        sessionId: sessionId,
+        topPageRouteName: Navigator.defaultRouteName,
+        pageRouteNames: <String?>[Navigator.defaultRouteName],
+      );
+      expect(missing.kind, FloatResumeKind.pushSession);
+      expect(missing.routeName, routeName);
+      expect(missing.routeName, isNot(SessionRoutes.nameFor('w-other')));
+    });
+
     test('shell tabs sit above the bottom nav', () {
       expect(
         workoutBubbleBottomInset(
@@ -382,6 +441,7 @@ void main() {
       await _settle(tester);
       expect(find.byKey(const Key('rest_timer_bar')), findsNothing);
       expect(find.text(AppStrings.workoutFinished), findsOneWidget);
+      expect(find.byKey(const Key('btn_minimize_session')), findsNothing);
       expect(_restFromShell(tester).sessionId, isNull);
       expect(_endedAt(await store.read()), isNotNull);
 
@@ -409,6 +469,66 @@ void main() {
     expect(find.byKey(const Key('workout_float_bubble')), findsNothing);
     expect((await store.read()).workouts, isEmpty);
     expect(_restFromShell(tester).sessionId, isNull);
+  });
+
+  testWidgets('minimize shows the rest countdown and resumes that session', (
+    WidgetTester tester,
+  ) async {
+    final PrefsLocalStore store = await _seed();
+    final String sessionId = (await store.read()).workouts.single['id']!
+        .toString();
+    await _pump(tester, store);
+    await tester.tap(find.byKey(const Key('workout_float_bubble')));
+    await _settle(tester);
+    expect(find.byKey(const Key('btn_minimize_session')), findsOneWidget);
+    expect(find.text(AppStrings.minimizeSession), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('set_complete_0')));
+    await _settle(tester);
+    _pinClock(tester);
+    for (int i = 0; i < 3; i++) {
+      await tester.tap(find.byKey(const Key('btn_rest_minus')));
+      await _settle(tester);
+    }
+    expect(find.text('00:45'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('btn_minimize_session')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 800));
+
+    expect(find.byKey(const Key('home_today_title')), findsOneWidget);
+    expect(find.byKey(const Key('btn_finish_workout')), findsNothing);
+    expect(find.byKey(const Key('workout_float_bubble')), findsOneWidget);
+    final Text primary = tester.widget<Text>(
+      find.byKey(const Key('workout_float_primary')),
+    );
+    expect(primary.data, '${AppStrings.restBubbleLabel} 0:45');
+    expect(primary.style?.color, CurvePalette.light.primary);
+    final Text elapsed = tester.widget<Text>(
+      find.byKey(const Key('workout_float_elapsed')),
+    );
+    expect(elapsed.data, contains(AppStrings.workoutBubbleLabel));
+    expect(elapsed.style?.color, CurvePalette.light.textSecondary);
+    expect(find.byKey(const Key('today_conflict_sheet')), findsNothing);
+
+    await tester.tap(find.byKey(const Key('workout_float_bubble')));
+    await _settle(tester);
+    final SessionPage page = tester.widget<SessionPage>(
+      find.byType(SessionPage),
+    );
+    expect(page.sessionId, sessionId);
+    expect(
+      ModalRoute.of(tester.element(find.byType(SessionPage)))?.settings.name,
+      SessionRoutes.nameFor(sessionId),
+    );
+    expect(find.text('00:45'), findsOneWidget);
+    expect(find.byKey(const Key('today_conflict_sheet')), findsNothing);
+    expect(find.byKey(const Key('workout_float_bubble')), findsNothing);
+    expect((await store.read()).workouts, hasLength(1));
+    expect(
+      (await store.read()).workouts.single[TrainingJsonKeys.id],
+      sessionId,
+    );
   });
 
   testWidgets('bubble shows on shell tabs and resumes the same session', (
