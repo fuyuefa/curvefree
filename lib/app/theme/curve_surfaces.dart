@@ -7,10 +7,11 @@ BoxDecoration curveSurfaceDecoration(
   Color? color,
   double radius = AppRadii.card,
   Color? borderColor,
+  double borderWidth = AppLayout.borderWidth,
 }) {
   return BoxDecoration(
     color: color ?? colors.card,
     borderRadius: BorderRadius.circular(radius),
-    border: Border.all(color: borderColor ?? colors.border),
+    border: Border.all(color: borderColor ?? colors.border, width: borderWidth),
   );
 }

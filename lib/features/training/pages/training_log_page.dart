@@ -3,6 +3,7 @@ import 'package:curvefree/features/plan/pages/plan_page.dart';
 import 'package:curvefree/features/exercises/pages/exercise_library_page.dart';
 import 'package:curvefree/features/training/models/workout_models.dart';
 import 'package:curvefree/features/training/session_routes.dart';
+import 'package:curvefree/features/training/start_workout.dart';
 import 'package:curvefree/features/training/training_providers.dart';
 import 'package:curvefree/features/training/widgets/workout_list_tile.dart';
 import 'package:flutter/material.dart';
@@ -85,12 +86,6 @@ class TrainingLogPage extends ConsumerWidget {
   }
 
   Future<void> _start(BuildContext context, WidgetRef ref) async {
-    final session = await ref
-        .read(workoutSessionsProvider.notifier)
-        .startSession();
-    if (!context.mounted) {
-      return;
-    }
-    await Navigator.of(context).push(sessionPageRoute(session.id));
+    await pushStartedWorkout(context, ref);
   }
 }

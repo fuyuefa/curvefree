@@ -4,8 +4,7 @@ import 'package:curvefree/core/constants/app_tokens.dart';
 import 'package:curvefree/features/plan/models/training_plan.dart';
 import 'package:curvefree/features/plan/plan_constants.dart';
 import 'package:curvefree/features/plan/plan_providers.dart';
-import 'package:curvefree/features/training/session_routes.dart';
-import 'package:curvefree/features/training/training_providers.dart';
+import 'package:curvefree/features/training/start_workout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -109,13 +108,7 @@ class _PlanPageState extends ConsumerState<PlanPage> {
   }
 
   Future<void> _start(PlannedSession planned) async {
-    final workout = await ref
-        .read(workoutSessionsProvider.notifier)
-        .startFromPlan(planned);
-    if (!mounted) {
-      return;
-    }
-    await Navigator.of(context).push(sessionPageRoute(workout.id));
+    await pushStartedWorkout(context, ref, planned: planned);
   }
 }
 

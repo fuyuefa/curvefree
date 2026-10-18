@@ -36,23 +36,54 @@ final class WorkoutSessionsController
 
   /// Opens the newest unfinished session, or records one seeded from [planned].
   ///
-  /// Today, the training log, and the plan page all enter here or through
-  /// [startSession]. An open session is resumed instead of duplicated.
+  /// Today, the training log, and the plan page ask in a conflict sheet
+  /// before calling this while a session is open. Called directly, it still
+  /// refuses to insert a second unfinished session.
   Future<WorkoutSession> startFromPlan(PlannedSession planned) async {
-    final repo = ref.read(workoutRepositoryProvider);
-    final existing = newestUnfinishedSession(await repo.listNewestFirst());
+    final WorkoutRepository repo = ref.read(workoutRepositoryProvider);
+    final WorkoutSession? existing = newestUnfinishedSession(
+      await repo.listNewestFirst(),
+    );
     if (existing != null) {
       await _sync();
       return existing;
     }
-    final seeded = <WorkoutExercise>[];
+    return _openOrCreate(await _sessionFromPlan(planned));
+  }
+
+  /// Ends the newest unfinished session and records one seeded from [planned].
+  Future<WorkoutSession> finishOpenAndStartFromPlan(
+    PlannedSession planned,
+  ) async {
+    return _finishOpenAndInsert(await _sessionFromPlan(planned));
+  }
+
+  /// Ends the newest unfinished session and records an empty one.
+  Future<WorkoutSession> finishOpenAndStartEmpty() {
+    return _finishOpenAndInsert(WorkoutSession.create());
+  }
+
+  Future<WorkoutSession> _sessionFromPlan(PlannedSession planned) async {
+    final WorkoutRepository repo = ref.read(workoutRepositoryProvider);
+    final List<WorkoutExercise> seeded = <WorkoutExercise>[];
     for (final WorkoutExercise exercise in exercisesFromPlan(planned)) {
-      final history = await repo.lastCompletedSet(exerciseName: exercise.name);
+      final WorkoutSet? history = await repo.lastCompletedSet(
+        exerciseName: exercise.name,
+      );
       seeded.add(
         applyLastCompletedWeight(exercise: exercise, lastCompleted: history),
       );
     }
-    return _openOrCreate(WorkoutSession.create().copyWith(exercises: seeded));
+    return WorkoutSession.create(title: planned.title)
+        .copyWith(exercises: seeded);
+  }
+
+  Future<WorkoutSession> _finishOpenAndInsert(WorkoutSession created) async {
+    final WorkoutSession opened = await ref
+        .read(workoutRepositoryProvider)
+        .finishNewestAndInsert(created);
+    await _sync();
+    return opened;
   }
 
   Future<WorkoutSession> _openOrCreate(WorkoutSession created) async {

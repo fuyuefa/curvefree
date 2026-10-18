@@ -150,7 +150,14 @@ abstract final class AppStrings {
   static const String localData = '本机数据';
   static const String exportBackup = '导出备份';
   static const String importBackup = '从备份恢复';
-  static const String resumeWorkout = '继续未完成训练';
+  static const String resumeContinue = '接着练';
+  static const String switchToTodayPlan = '改用今日计划动作';
+  static const String startConflictTitle = '已有进行中的训练';
+  static const String startConflictBody = '先接着练这堂，还是结束它再按今日计划开新课？未完成的组会留在当前课里';
+  static const String conflictResumeCurrent = '继续当前';
+  static const String conflictFinishAndStart = '结束并开新';
+  static const String freeWorkoutName = '自由训练';
+  static const String elapsedUnderOneMinute = '已经不到 1 分钟';
   static const String todayPlan = '今日计划';
   static const String todayRest = '今日按计划休息';
   static const String backupExportConfirmTitle = '导出备份到文件';
@@ -185,4 +192,29 @@ abstract final class AppStrings {
   }
 
   static String trendNoVolumeLine(int days) => '这 $days 天还没有容量';
+
+  static String elapsedMinutes(int minutes) => '已经 $minutes 分钟了';
+
+  static String elapsedHours(int hours) => '已经 $hours 小时了';
+
+  static String elapsedHoursMinutes({
+    required int hours,
+    required int minutes,
+  }) {
+    return '已经 $hours 小时 $minutes 分钟了';
+  }
+
+  static String resumeCardTitle({
+    required String name,
+    required String detail,
+  }) {
+    return '$name · $detail';
+  }
+
+  static String resumeLoggedLine({
+    required int completedSets,
+    required String volume,
+  }) {
+    return '已记 $completedSets $setColumn · $volumeLabel约 $volume $weightColumn';
+  }
 }

@@ -138,6 +138,7 @@ final class WorkoutSession {
     required this.notes,
     required this.exercises,
     this.timerStartedAt,
+    this.title = '',
   });
 
   final String id;
@@ -147,6 +148,10 @@ final class WorkoutSession {
   final DateTime? timerStartedAt;
   final DateTime? endedAt;
   final String notes;
+
+  /// Plan-day name captured when the session was opened from a plan.
+  /// Empty for a free session and for rows written before the field existed.
+  final String title;
   final List<WorkoutExercise> exercises;
 
   bool get isFinished => endedAt != null;
@@ -173,13 +178,14 @@ final class WorkoutSession {
         sum + exercise.sets.where((WorkoutSet s) => s.completed).length,
   );
 
-  factory WorkoutSession.create({DateTime? startedAt}) {
+  factory WorkoutSession.create({DateTime? startedAt, String title = ''}) {
     return WorkoutSession(
       id: EntityIds.next(TrainingIdPrefix.session),
       startedAt: startedAt ?? DateTime.now(),
       endedAt: null,
       notes: '',
       exercises: const <WorkoutExercise>[],
+      title: title,
     );
   }
 
@@ -201,6 +207,7 @@ final class WorkoutSession {
         json[TrainingJsonKeys.endedAt]?.toString() ?? '',
       ),
       notes: json[TrainingJsonKeys.notes]?.toString() ?? '',
+      title: json[TrainingJsonKeys.title]?.toString() ?? '',
       exercises: rawExercises is List
           ? rawExercises
                 .whereType<Map<Object?, Object?>>()
@@ -225,6 +232,7 @@ final class WorkoutSession {
         TrainingJsonKeys.timerStartedAt: timerStartedAt!.toIso8601String(),
       TrainingJsonKeys.endedAt: endedAt?.toIso8601String(),
       TrainingJsonKeys.notes: notes,
+      if (title.isNotEmpty) TrainingJsonKeys.title: title,
       TrainingJsonKeys.exercises: exercises
           .map((WorkoutExercise e) => e.toJson())
           .toList(),
@@ -236,6 +244,7 @@ final class WorkoutSession {
     DateTime? endedAt,
     bool clearEndedAt = false,
     String? notes,
+    String? title,
     List<WorkoutExercise>? exercises,
     DateTime? timerStartedAt,
   }) {
@@ -245,6 +254,7 @@ final class WorkoutSession {
       startedAt: startedAt ?? this.startedAt,
       endedAt: clearEndedAt ? null : (endedAt ?? this.endedAt),
       notes: notes ?? this.notes,
+      title: title ?? this.title,
       exercises: nextExercises,
       timerStartedAt: _nextTimerOrigin(
         nextExercises: nextExercises,

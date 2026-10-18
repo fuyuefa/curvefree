@@ -4,6 +4,7 @@ abstract final class TrainingJsonKeys {
   static const String timerStartedAt = 'timerStartedAt';
   static const String endedAt = 'endedAt';
   static const String notes = 'notes';
+  static const String title = 'title';
   static const String exercises = 'exercises';
   static const String name = 'name';
   static const String sets = 'sets';

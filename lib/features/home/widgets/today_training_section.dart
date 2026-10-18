@@ -10,9 +10,10 @@ import 'package:curvefree/features/home/widgets/today_cards.dart';
 import 'package:curvefree/features/plan/models/training_plan.dart';
 import 'package:curvefree/features/plan/pages/plan_page.dart';
 import 'package:curvefree/features/plan/plan_providers.dart';
-import 'package:curvefree/features/training/elapsed_format.dart';
 import 'package:curvefree/features/training/models/workout_models.dart';
+import 'package:curvefree/features/training/session_label.dart';
 import 'package:curvefree/features/training/session_routes.dart';
+import 'package:curvefree/features/training/start_workout.dart';
 import 'package:curvefree/features/training/training_providers.dart';
 import 'package:curvefree/features/training/unfinished_session.dart';
 import 'package:flutter/material.dart';
@@ -49,8 +50,11 @@ class TodayTrainingSection extends ConsumerWidget {
       children: <Widget>[
         if (unfinished != null) ...<Widget>[
           TodayResumeCard(
-            detail: _resumeDetail(unfinished, now),
-            onTap: () {
+            name: sessionDisplayName(unfinished),
+            timerOrigin: unfinished.timerOrigin,
+            completedSets: unfinished.completedSetCount,
+            volumeKg: unfinished.volumeKg,
+            onResume: () {
               Navigator.of(context).push(sessionPageRoute(unfinished.id));
             },
           ),
@@ -72,11 +76,17 @@ class TodayTrainingSection extends ConsumerWidget {
           },
         ),
         const SizedBox(height: AppSpacing.sm),
-        if (today != null)
+        if (today != null && unfinished != null)
+          TodaySwitchPlanLink(
+            onTap: () {
+              unawaited(pushStartedWorkout(context, ref, planned: today));
+            },
+          )
+        else if (today != null)
           TodayPlanCard(
             session: today,
             onTap: () {
-              unawaited(_startToday(context, ref, today));
+              unawaited(pushStartedWorkout(context, ref, planned: today));
             },
           )
         else if (plan != null)
@@ -92,30 +102,4 @@ class TodayTrainingSection extends ConsumerWidget {
       ],
     );
   }
-
-  Future<void> _startToday(
-    BuildContext context,
-    WidgetRef ref,
-    PlannedSession planned,
-  ) async {
-    final WorkoutSession workout = await ref
-        .read(workoutSessionsProvider.notifier)
-        .startFromPlan(planned);
-    if (!context.mounted) {
-      return;
-    }
-    await Navigator.of(context).push(sessionPageRoute(workout.id));
-  }
-}
-
-String _resumeDetail(WorkoutSession session, DateTime now) {
-  final String volume = session.volumeKg.toStringAsFixed(0);
-  final String counts =
-      '${session.completedSetCount} ${AppStrings.setColumn} · ${AppStrings.volumeLabel} $volume ${AppStrings.weightColumn}';
-  final DateTime? origin = session.isTimerRunning ? session.timerOrigin : null;
-  if (origin == null) {
-    return '${AppStrings.workoutPreparing} · $counts';
-  }
-  final String elapsed = ElapsedFormat.format(now.difference(origin));
-  return '$elapsed · $counts';
 }
