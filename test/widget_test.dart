@@ -157,6 +157,16 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.byKey(const Key('home_resume_workout')), findsOneWidget);
+    expect(find.text(AppStrings.resumeContinue), findsOneWidget);
+    expect(find.byKey(const Key('home_today_plan')), findsNothing);
+    expect(find.byKey(const Key('home_switch_today_plan')), findsOneWidget);
+    final Container card = tester.widget<Container>(
+      find.byKey(const Key('home_resume_card')),
+    );
+    final BoxDecoration decoration = card.decoration! as BoxDecoration;
+    final Border border = decoration.border! as Border;
+    expect(border.top.color, CurvePalette.light.primary);
+    expect(border.top.width, AppLayout.focusBorderWidth);
     expect(tester.takeException(), isNull);
 
     await tester.tap(find.byKey(const Key('home_resume_workout')));

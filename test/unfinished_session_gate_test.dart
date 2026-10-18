@@ -102,6 +102,7 @@ void main() {
     test('starts a seeded session only when nothing is unfinished', () async {
       final harness = await _harness();
       final first = await harness.notifier.startFromPlan(_pushDay());
+      expect(first.title, '推');
       expect(first.exercises.single.name, '杠铃卧推');
       expect(first.exercises.single.sets, hasLength(3));
 
@@ -145,6 +146,31 @@ void main() {
       },
     );
 
+    test('finish open and start from plan keeps the old sets', () async {
+      final WorkoutSession open = _session(
+        id: 'w-open',
+        startedAt: DateTime.utc(2026, 10, 2, 8),
+        name: _openExerciseName,
+        title: '旧推肩日',
+      );
+      final harness = await _harness(workouts: <WorkoutSession>[open]);
+
+      final WorkoutSession created = await harness.notifier
+          .finishOpenAndStartFromPlan(_pushDay());
+
+      expect(created.title, '推');
+      expect(created.isFinished, isFalse);
+      expect(created.exercises.single.name, '杠铃卧推');
+      expect(harness.sessions, hasLength(2));
+      final WorkoutSession finished = harness.sessions.singleWhere(
+        (WorkoutSession session) => session.id == open.id,
+      );
+      expect(finished.isFinished, isTrue);
+      expect(finished.title, '旧推肩日');
+      expect(finished.exercises.single.name, _openExerciseName);
+      expect(finished.exercises.single.sets.single.completed, isTrue);
+    });
+
     test('parallel start calls still leave a single session', () async {
       final harness = await _harness();
       final opened = await Future.wait(<Future<WorkoutSession>>[
@@ -157,28 +183,99 @@ void main() {
     });
   });
 
-  testWidgets('today plan resumes the open session', (
+  testWidgets('today plan link asks before replacing the open session', (
     WidgetTester tester,
   ) async {
     final seeded = await _pumpWithOpenSession(tester);
-    await tester.ensureVisible(find.byKey(const Key('home_today_plan')));
-    await tester.tap(find.byKey(const Key('home_today_plan')));
-    await _settle(tester);
+    expect(find.byKey(const Key('home_today_plan')), findsNothing);
+    expect(find.byKey(const Key('home_resume_card')), findsOneWidget);
+    expect(find.text(AppStrings.resumeContinue), findsOneWidget);
+    expect(find.textContaining('推肩日 · 已经'), findsOneWidget);
+    expect(
+      find.text(AppStrings.resumeLoggedLine(completedSets: 1, volume: '450')),
+      findsOneWidget,
+    );
+
+    await _openConflict(
+      tester,
+      find.byKey(const Key('home_switch_today_plan')),
+    );
+    expect(find.text(AppStrings.startConflictTitle), findsOneWidget);
+    expect(find.text(AppStrings.startConflictBody), findsOneWidget);
+    await _choose(tester, const Key('today_conflict_cancel'));
+    expect(find.byKey(const Key('today_conflict_sheet')), findsNothing);
+    expect((await seeded.store.read()).workouts, hasLength(1));
+
+    await _openConflict(
+      tester,
+      find.byKey(const Key('home_switch_today_plan')),
+    );
+    await _choose(tester, const Key('today_conflict_resume'));
     await _expectResumed(tester, seeded.store, seeded.open.id);
+
+    await _popPage(tester);
+
+    await _openConflict(
+      tester,
+      find.byKey(const Key('home_switch_today_plan')),
+    );
+    await _choose(tester, const Key('today_conflict_finish_new'));
+    expect(find.text('杠铃卧推'), findsWidgets);
+    expect(find.text(_openExerciseName), findsNothing);
+    final List<WorkoutSession> sessions = await _readSessions(seeded.store);
+    expect(sessions, hasLength(2));
+    final WorkoutSession finished = sessions.singleWhere(
+      (WorkoutSession session) => session.id == seeded.open.id,
+    );
+    final WorkoutSession created = sessions.singleWhere(
+      (WorkoutSession session) => session.id != seeded.open.id,
+    );
+    expect(finished.isFinished, isTrue);
+    expect(finished.exercises.single.name, _openExerciseName);
+    expect(created.isFinished, isFalse);
+    expect(created.title, '推');
+    expect(created.exercises.single.name, '杠铃卧推');
   });
 
-  testWidgets('training start resumes the open session', (
+  testWidgets('training start asks before opening another session', (
     WidgetTester tester,
   ) async {
     final seeded = await _pumpWithOpenSession(tester);
     await tester.tap(find.byKey(const Key('nav_training')));
     await _settle(tester);
-    await tester.tap(find.byKey(const Key('btn_start_workout')));
-    await _settle(tester);
+
+    await _openConflict(tester, find.byKey(const Key('btn_start_workout')));
+    await _choose(tester, const Key('today_conflict_cancel'));
+    expect(find.byKey(const Key('btn_start_workout')), findsOneWidget);
+    expect((await seeded.store.read()).workouts, hasLength(1));
+
+    await _openConflict(tester, find.byKey(const Key('btn_start_workout')));
+    await _choose(tester, const Key('today_conflict_resume'));
     await _expectResumed(tester, seeded.store, seeded.open.id);
+
+    await _popPage(tester);
+
+    await _openConflict(tester, find.byKey(const Key('btn_start_workout')));
+    await _choose(tester, const Key('today_conflict_finish_new'));
+    expect(find.text(_openExerciseName), findsNothing);
+    expect(find.byKey(const Key('btn_add_exercise')), findsOneWidget);
+    final List<WorkoutSession> sessions = await _readSessions(seeded.store);
+    expect(sessions, hasLength(2));
+    expect(
+      sessions
+          .singleWhere((WorkoutSession session) => session.id == seeded.open.id)
+          .isFinished,
+      isTrue,
+    );
+    final WorkoutSession created = sessions.singleWhere(
+      (WorkoutSession session) => session.id != seeded.open.id,
+    );
+    expect(created.isFinished, isFalse);
+    expect(created.title, isEmpty);
+    expect(created.exercises, isEmpty);
   });
 
-  testWidgets('plan page start resumes the open session', (
+  testWidgets('plan page start asks before replacing the open session', (
     WidgetTester tester,
   ) async {
     final seeded = await _pumpWithOpenSession(tester);
@@ -186,14 +283,30 @@ void main() {
     await _settle(tester);
     await tester.tap(find.byKey(const Key('btn_open_plan')));
     await _settle(tester);
-    final Finder startFromPlan = find.widgetWithText(
-      TextButton,
-      AppStrings.startFromPlan,
-    );
-    await tester.ensureVisible(startFromPlan);
-    await tester.tap(startFromPlan);
-    await _settle(tester);
+
+    await _openConflict(tester, _planStartButton());
+    await _choose(tester, const Key('today_conflict_resume'));
     await _expectResumed(tester, seeded.store, seeded.open.id);
+
+    await _popPage(tester);
+
+    await _openConflict(tester, _planStartButton());
+    await _choose(tester, const Key('today_conflict_finish_new'));
+    expect(find.text('杠铃卧推'), findsWidgets);
+    final List<WorkoutSession> sessions = await _readSessions(seeded.store);
+    expect(sessions, hasLength(2));
+    expect(
+      sessions
+          .singleWhere((WorkoutSession session) => session.id == seeded.open.id)
+          .isFinished,
+      isTrue,
+    );
+    expect(
+      sessions
+          .singleWhere((WorkoutSession session) => session.id != seeded.open.id)
+          .title,
+      '推',
+    );
   });
 
   testWidgets('plan page still starts a session when none is unfinished', (
@@ -233,7 +346,80 @@ void main() {
       snapshot.workouts.single[TrainingJsonKeys.exercises],
       contains(containsPair(TrainingJsonKeys.name, '杠铃卧推')),
     );
+    expect(snapshot.workouts.single[TrainingJsonKeys.title], '推');
   });
+
+  testWidgets('rest day with an open session hides the plan switch', (
+    WidgetTester tester,
+  ) async {
+    final PrefsLocalStore store = await _emptyStore();
+    final int otherDay = DateTime.now().weekday == DateTime.monday
+        ? DateTime.tuesday
+        : DateTime.monday;
+    final WorkoutSession open = _session(
+      id: 'w-open',
+      startedAt: DateTime.now(),
+      name: _openExerciseName,
+      title: '推肩日',
+    );
+    await store.write(
+      LocalStoreSnapshot.empty().copyWith(
+        settings: <String, Object?>{
+          PlanJsonKeys.settingsKey: TrainingPlan(
+            goal: TrainingGoal.hypertrophy,
+            daysPerWeek: 2,
+            equipment: EquipmentProfile.fullGym,
+            sessions: <PlannedSession>[_pushDay(weekday: otherDay)],
+          ).toJson(),
+        },
+        workouts: <Map<String, Object?>>[open.toJson()],
+      ),
+    );
+    await tester.pumpWidget(
+      CurveFreeApp(localStore: store, skipOnboarding: true),
+    );
+    await _settle(tester);
+
+    expect(find.byKey(const Key('home_resume_workout')), findsOneWidget);
+    expect(find.byKey(const Key('home_today_rest')), findsOneWidget);
+    expect(find.byKey(const Key('home_switch_today_plan')), findsNothing);
+    expect(find.byKey(const Key('home_today_plan')), findsNothing);
+  });
+}
+
+Finder _planStartButton() {
+  return find.widgetWithText(TextButton, AppStrings.startFromPlan);
+}
+
+Future<void> _openConflict(WidgetTester tester, Finder entry) async {
+  await tester.ensureVisible(entry);
+  await tester.pump();
+  await tester.tap(entry);
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 400));
+  expect(find.byKey(const Key('today_conflict_sheet')), findsOneWidget);
+}
+
+Future<void> _choose(WidgetTester tester, Key key) async {
+  await tester.ensureVisible(find.byKey(key));
+  await tester.pump();
+  await tester.tap(find.byKey(key));
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 800));
+}
+
+Future<void> _popPage(WidgetTester tester) async {
+  final NavigatorState navigator = tester.state<NavigatorState>(
+    find.byType(Navigator),
+  );
+  navigator.pop();
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 400));
+}
+
+Future<List<WorkoutSession>> _readSessions(PrefsLocalStore store) async {
+  final snapshot = await store.read();
+  return snapshot.workouts.map(WorkoutSession.fromJson).toList();
 }
 
 Future<void> _settle(WidgetTester tester) async {
@@ -244,11 +430,16 @@ Future<void> _settle(WidgetTester tester) async {
 Future<({PrefsLocalStore store, WorkoutSession open})> _pumpWithOpenSession(
   WidgetTester tester,
 ) async {
+  tester.view.physicalSize = const Size(800, 1600);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
   final store = await _emptyStore();
   final open = _session(
     id: 'w-open',
     startedAt: DateTime.now().subtract(const Duration(hours: 1)),
     name: _openExerciseName,
+    title: '推肩日',
   );
   await store.write(
     LocalStoreSnapshot.empty().copyWith(
@@ -324,12 +515,14 @@ WorkoutSession _session({
   required DateTime startedAt,
   required String name,
   DateTime? endedAt,
+  String title = '',
 }) {
   return WorkoutSession(
     id: id,
     startedAt: startedAt,
     endedAt: endedAt,
     notes: '',
+    title: title,
     exercises: <WorkoutExercise>[
       WorkoutExercise(
         id: 'e-$id',

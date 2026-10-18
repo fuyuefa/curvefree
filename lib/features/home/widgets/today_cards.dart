@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:curvefree/app/theme/curve_colors.dart';
 import 'package:curvefree/app/theme/curve_surfaces.dart';
 import 'package:curvefree/core/constants/app_tokens.dart';
@@ -5,66 +7,122 @@ import 'package:curvefree/features/home/muscle_groups.dart';
 import 'package:curvefree/features/home/week_progress.dart';
 import 'package:curvefree/features/plan/models/training_plan.dart';
 import 'package:curvefree/features/plan/plan_constants.dart';
+import 'package:curvefree/features/training/rest_timer.dart';
+import 'package:curvefree/features/training/resume_copy.dart';
 import 'package:flutter/material.dart';
 
-class TodayResumeCard extends StatelessWidget {
-  const TodayResumeCard({super.key, required this.detail, required this.onTap});
+class TodayResumeCard extends StatefulWidget {
+  const TodayResumeCard({
+    super.key,
+    required this.name,
+    required this.timerOrigin,
+    required this.completedSets,
+    required this.volumeKg,
+    required this.onResume,
+  });
 
-  final String detail;
-  final VoidCallback onTap;
+  final String name;
+  final DateTime? timerOrigin;
+  final int completedSets;
+  final double volumeKg;
+  final VoidCallback onResume;
+
+  @override
+  State<TodayResumeCard> createState() => _TodayResumeCardState();
+}
+
+class _TodayResumeCardState extends State<TodayResumeCard> {
+  Timer? _ticker;
+
+  @override
+  void initState() {
+    super.initState();
+    _syncTicker();
+  }
+
+  @override
+  void didUpdateWidget(TodayResumeCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _syncTicker();
+  }
+
+  void _syncTicker() {
+    if (widget.timerOrigin == null) {
+      _ticker?.cancel();
+      _ticker = null;
+      return;
+    }
+    _ticker ??= Timer.periodic(RestTimerLimits.tick, (Timer timer) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final CurveColors colors = CurveColors.of(context);
-    return Material(
-      color: colors.card,
-      borderRadius: BorderRadius.circular(AppRadii.card),
-      child: InkWell(
-        key: const Key('home_resume_workout'),
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadii.card),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: curveSurfaceDecoration(colors),
-          child: Row(
-            children: <Widget>[
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      AppStrings.resumeWorkout,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: AppSpacing.xxs),
-                    Text(detail, style: Theme.of(context).textTheme.bodyMedium),
-                  ],
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: AppSpacing.xs,
-                ),
-                decoration: BoxDecoration(
-                  color: colors.primarySoft,
-                  borderRadius: BorderRadius.circular(AppRadii.chip),
-                ),
-                child: Text(
-                  AppStrings.continueAction,
-                  style: TextStyle(
-                    color: colors.primary,
-                    fontWeight: FontWeight.w600,
-                    fontFamily: AppFonts.ui,
-                    fontFamilyFallback: AppFonts.cjkFallback,
-                  ),
-                ),
-              ),
-            ],
+    final Duration? elapsed = widget.timerOrigin == null
+        ? null
+        : DateTime.now().difference(widget.timerOrigin!);
+    return Container(
+      key: const Key('home_resume_card'),
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: curveSurfaceDecoration(
+        colors,
+        borderColor: colors.primary,
+        borderWidth: AppLayout.focusBorderWidth,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            ResumeCopy.cardTitle(name: widget.name, elapsed: elapsed),
+            style: Theme.of(context).textTheme.titleLarge,
           ),
-        ),
+          const SizedBox(height: AppSpacing.xxs),
+          Text(
+            ResumeCopy.cardSubtitle(
+              completedSets: widget.completedSets,
+              volumeKg: widget.volumeKg,
+            ),
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              key: const Key('home_resume_workout'),
+              onPressed: widget.onResume,
+              child: const Text(AppStrings.resumeContinue),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class TodaySwitchPlanLink extends StatelessWidget {
+  const TodaySwitchPlanLink({super.key, required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: TextButton(
+        key: const Key('home_switch_today_plan'),
+        onPressed: onTap,
+        child: const Text(AppStrings.switchToTodayPlan),
       ),
     );
   }

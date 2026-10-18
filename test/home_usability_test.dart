@@ -68,9 +68,15 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.byKey(const Key('home_resume_workout')), findsOneWidget);
-    expect(find.text(AppStrings.resumeWorkout), findsOneWidget);
-    expect(find.byKey(const Key('home_today_plan')), findsOneWidget);
-    expect(find.textContaining('杠铃卧推'), findsWidgets);
+    expect(find.text(AppStrings.resumeContinue), findsOneWidget);
+    expect(
+      find.textContaining('深蹲 · ${AppStrings.elapsedUnderOneMinute}'),
+      findsOneWidget,
+    );
+    expect(find.text('已记 1 组 · 容量约 450 kg'), findsOneWidget);
+    expect(find.byKey(const Key('home_today_plan')), findsNothing);
+    expect(find.byKey(const Key('home_switch_today_plan')), findsOneWidget);
+    expect(find.textContaining('杠铃卧推'), findsNothing);
 
     await tester.tap(find.byKey(const Key('home_resume_workout')));
     await tester.pump();

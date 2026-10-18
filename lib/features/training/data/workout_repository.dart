@@ -60,6 +60,39 @@ final class WorkoutRepository {
     return opened;
   }
 
+  /// Ends the newest unfinished session, if any, and stores [created].
+  ///
+  /// One mutation so "结束并开新" cannot observe the session it just finished
+  /// and resume it instead of inserting.
+  Future<WorkoutSession> finishNewestAndInsert(WorkoutSession created) async {
+    final DateTime endedAt = DateTime.now();
+    final LocalStoreSnapshot snapshot = await _store.mutate((
+      LocalStoreSnapshot current,
+    ) {
+      final List<WorkoutSession> sessions = current.workouts
+          .map(WorkoutSession.fromJson)
+          .toList(growable: false);
+      final WorkoutSession? open = newestUnfinishedSession(sessions);
+      final List<Map<String, Object?>> next = <Map<String, Object?>>[
+        created.toJson(),
+      ];
+      for (final WorkoutSession session in sessions) {
+        if (open != null && session.id == open.id) {
+          next.add(session.copyWith(endedAt: endedAt).toJson());
+        } else {
+          next.add(session.toJson());
+        }
+      }
+      return current.copyWith(workouts: next);
+    });
+    for (final Map<String, Object?> item in snapshot.workouts) {
+      if (item[TrainingJsonKeys.id]?.toString() == created.id) {
+        return WorkoutSession.fromJson(item);
+      }
+    }
+    throw StateError('未能开始这次训练');
+  }
+
   Future<void> upsert(WorkoutSession session) async {
     await _store.mutate((snapshot) {
       final next = snapshot.workouts
