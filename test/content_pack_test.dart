@@ -98,6 +98,13 @@ void main() {
         muscleGroupsFor(catalogId: 'fedb_side_lateral_raise', name: '侧平举'),
         contains(MuscleGroup.shoulders),
       );
+      expect(
+        muscleGroupsFor(
+          catalogId: 'fedb_split_squat_with_dumbbells',
+          name: '哑铃分腿蹲',
+        ),
+        containsAll(<MuscleGroup>[MuscleGroup.legs, MuscleGroup.glutes]),
+      );
 
       final FoodItem? chicken = snapshot.foods.byId('chicken_breast');
       final FoodItem? eggWhite = snapshot.foods.byId('egg_white');

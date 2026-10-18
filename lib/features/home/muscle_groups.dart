@@ -6,7 +6,9 @@ import 'package:curvefree/features/plan/models/training_plan.dart';
 import 'package:curvefree/features/training/models/workout_models.dart';
 
 /// Display buckets for the today-page dots. Not a stored anatomy model.
-enum MuscleGroup { chest, back, legs, shoulders, arms, core }
+///
+/// Order matches onboarding prefer chips: 胸、背、肩、腿、臀、手臂、核心.
+enum MuscleGroup { chest, back, shoulders, legs, glutes, arms, core }
 
 enum MuscleDotState { idle, planned, trained }
 
@@ -17,12 +19,14 @@ extension MuscleGroupLabel on MuscleGroup {
         return '胸';
       case MuscleGroup.back:
         return '背';
-      case MuscleGroup.legs:
-        return '腿';
       case MuscleGroup.shoulders:
         return '肩';
+      case MuscleGroup.legs:
+        return '腿';
+      case MuscleGroup.glutes:
+        return '臀';
       case MuscleGroup.arms:
-        return '臂';
+        return '手臂';
       case MuscleGroup.core:
         return '核心';
     }
@@ -41,13 +45,21 @@ const Map<String, Set<MuscleGroup>> catalogMuscleGroups =
       'ex_pullup': <MuscleGroup>{MuscleGroup.back},
       'ex_db_row': <MuscleGroup>{MuscleGroup.back},
       'ex_face_pull': <MuscleGroup>{MuscleGroup.shoulders, MuscleGroup.back},
-      'ex_back_squat': <MuscleGroup>{MuscleGroup.legs},
+      'ex_back_squat': <MuscleGroup>{MuscleGroup.legs, MuscleGroup.glutes},
       'ex_front_squat': <MuscleGroup>{MuscleGroup.legs},
       'ex_leg_press': <MuscleGroup>{MuscleGroup.legs},
-      'ex_lunge': <MuscleGroup>{MuscleGroup.legs},
-      'ex_deadlift': <MuscleGroup>{MuscleGroup.back, MuscleGroup.legs},
-      'ex_rdl': <MuscleGroup>{MuscleGroup.legs, MuscleGroup.back},
-      'ex_hip_thrust': <MuscleGroup>{MuscleGroup.legs},
+      'ex_lunge': <MuscleGroup>{MuscleGroup.legs, MuscleGroup.glutes},
+      'ex_deadlift': <MuscleGroup>{
+        MuscleGroup.back,
+        MuscleGroup.legs,
+        MuscleGroup.glutes,
+      },
+      'ex_rdl': <MuscleGroup>{
+        MuscleGroup.legs,
+        MuscleGroup.back,
+        MuscleGroup.glutes,
+      },
+      'ex_hip_thrust': <MuscleGroup>{MuscleGroup.glutes},
       'ex_plank': <MuscleGroup>{MuscleGroup.core},
     };
 
@@ -83,8 +95,9 @@ Set<MuscleGroup> _groupsForBodyParts(List<String>? parts) {
       case BodyPartIds.shoulders:
         groups.add(MuscleGroup.shoulders);
       case BodyPartIds.legs:
-      case BodyPartIds.glutes:
         groups.add(MuscleGroup.legs);
+      case BodyPartIds.glutes:
+        groups.add(MuscleGroup.glutes);
       case BodyPartIds.arms:
         groups.add(MuscleGroup.arms);
       case BodyPartIds.core:
@@ -105,11 +118,11 @@ Set<MuscleGroup> muscleGroupsFromName(String name) {
       name.contains('背')) {
     groups.add(MuscleGroup.back);
   }
-  if (name.contains('蹲') ||
-      name.contains('腿') ||
-      name.contains('硬拉') ||
-      name.contains('臀')) {
+  if (name.contains('蹲') || name.contains('腿') || name.contains('硬拉')) {
     groups.add(MuscleGroup.legs);
+  }
+  if (name.contains('臀')) {
+    groups.add(MuscleGroup.glutes);
   }
   if (name.contains('推举') || name.contains('肩')) {
     groups.add(MuscleGroup.shoulders);

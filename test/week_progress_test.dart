@@ -1,11 +1,16 @@
+import 'package:curvefree/app/theme/app_theme.dart';
+import 'package:curvefree/core/constants/app_tokens.dart';
+import 'package:curvefree/features/content/content_constants.dart';
 import 'package:curvefree/features/exercises/exercise_catalog.dart';
 import 'package:curvefree/features/exercises/models/catalog_exercise.dart';
 import 'package:curvefree/features/home/muscle_groups.dart';
 import 'package:curvefree/features/home/week_progress.dart';
+import 'package:curvefree/features/home/widgets/today_cards.dart';
 import 'package:curvefree/features/plan/models/training_plan.dart';
 import 'package:curvefree/features/plan/plan_constants.dart';
 import 'package:curvefree/features/training/elapsed_format.dart';
 import 'package:curvefree/features/training/models/workout_models.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -111,6 +116,47 @@ void main() {
       <MuscleGroup>{MuscleGroup.chest},
     );
     expect(muscleGroupsFromName('自定义弯举'), <MuscleGroup>{MuscleGroup.arms});
+    expect(
+      muscleGroupsFor(catalogId: 'ex_hip_thrust', name: '臀桥'),
+      <MuscleGroup>{MuscleGroup.glutes},
+    );
+    expect(
+      muscleGroupsFor(catalogId: 'ex_back_squat', name: '杠铃深蹲'),
+      containsAll(<MuscleGroup>[MuscleGroup.legs, MuscleGroup.glutes]),
+    );
+    expect(muscleGroupsFromName('臀桥'), <MuscleGroup>{MuscleGroup.glutes});
+    expect(muscleGroupsFromName('自定义臀推'), <MuscleGroup>{MuscleGroup.glutes});
+    expect(
+      MuscleGroup.values.map((MuscleGroup group) => group.labelZh),
+      <String>['胸', '背', '肩', '腿', '臀', '手臂', '核心'],
+    );
+    for (final CatalogExercise item in ExerciseCatalog.baseline) {
+      final List<String> parts = ExerciseCatalog.baselineBodyParts[item.id]!;
+      if (parts.contains(BodyPartIds.glutes)) {
+        expect(
+          muscleGroupsFor(catalogId: item.id, name: item.nameZh),
+          contains(MuscleGroup.glutes),
+          reason: item.id,
+        );
+      }
+    }
+    expect(
+      plannedMuscleGroups(
+        const PlannedSession(
+          weekday: DateTime.monday,
+          title: '臀',
+          items: <PlannedItem>[
+            PlannedItem(
+              catalogId: 'ex_hip_thrust',
+              nameZh: '臀桥',
+              sets: 3,
+              reps: 10,
+            ),
+          ],
+        ),
+      ),
+      contains(MuscleGroup.glutes),
+    );
     for (final CatalogExercise item in ExerciseCatalog.all) {
       expect(catalogMuscleGroups.containsKey(item.id), isTrue, reason: item.id);
     }
@@ -129,6 +175,53 @@ void main() {
         planned: <MuscleGroup>{MuscleGroup.back},
       ),
       MuscleDotState.planned,
+    );
+    expect(
+      muscleDotState(
+        group: MuscleGroup.glutes,
+        trained: <MuscleGroup>{},
+        planned: <MuscleGroup>{MuscleGroup.glutes},
+      ),
+      MuscleDotState.planned,
+    );
+  });
+
+  testWidgets('today muscle dots include glutes in prefer-chip order', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildCurveFreeTheme(Brightness.light),
+        home: const Scaffold(
+          body: SizedBox(
+            width: 320,
+            child: MuscleGroupDots(
+              title: AppStrings.musclesPlannedToday,
+              trained: <MuscleGroup>{},
+              planned: <MuscleGroup>{MuscleGroup.glutes},
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.text(AppStrings.musclesPlannedToday), findsOneWidget);
+    expect(find.text('臀'), findsOneWidget);
+    expect(find.text('手臂'), findsOneWidget);
+    expect(find.text('臂'), findsNothing);
+    expect(
+      tester
+          .widgetList<Text>(
+            find.descendant(
+              of: find.byKey(const Key('home_muscle_groups')),
+              matching: find.byType(Text),
+            ),
+          )
+          .map((Text text) => text.data)
+          .where((String? data) => data != AppStrings.musclesPlannedToday)
+          .toList(),
+      <String>['胸', '背', '肩', '腿', '臀', '手臂', '核心'],
     );
   });
 }
