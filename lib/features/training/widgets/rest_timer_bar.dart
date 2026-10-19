@@ -4,9 +4,9 @@ import 'package:curvefree/app/theme/curve_colors.dart';
 import 'package:curvefree/app/theme/curve_surfaces.dart';
 import 'package:curvefree/core/constants/app_tokens.dart';
 import 'package:curvefree/features/training/elapsed_format.dart';
+import 'package:curvefree/features/training/rest_end_flash.dart';
 import 'package:curvefree/features/training/rest_timer.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class RestTimerBar extends ConsumerStatefulWidget {
@@ -38,13 +38,8 @@ class _RestTimerBarState extends ConsumerState<RestTimerBar> {
     if (!mounted) {
       return;
     }
-    final RestTimerState rest = ref.read(restTimerProvider);
     final DateTime now = ref.read(restTimerProvider.notifier).clock();
-    if (rest.sessionId == widget.sessionId && !rest.isRunningAt(now)) {
-      unawaited(playRestDoneHaptic());
-      ref.read(restTimerProvider.notifier).skip();
-      return;
-    }
+    ref.read(restTimerProvider.notifier).noteNaturalEnd(now);
     setState(() {});
   }
 
@@ -62,14 +57,24 @@ class _RestTimerBarState extends ConsumerState<RestTimerBar> {
           fontSize: AppLayout.restCountdownSize,
           fontWeight: FontWeight.w600,
         );
-    return Container(
+    final bool flashing = rest.endFlashActiveFor(widget.sessionId, now);
+    final Color fill = flashing
+        ? restEndPeakFill(
+            idle: colors.primarySoft,
+            primarySoft: colors.primarySoft,
+            primary: colors.primary,
+          )
+        : colors.primarySoft;
+    return AnimatedContainer(
       key: const Key('rest_timer_bar'),
+      duration: AppMotion.restEndFlash,
+      curve: Curves.easeOut,
       width: double.infinity,
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.sm,
         vertical: AppSpacing.sm,
       ),
-      decoration: curveSurfaceDecoration(colors, color: colors.primarySoft),
+      decoration: curveSurfaceDecoration(colors, color: fill),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -126,18 +131,5 @@ class _RestTimerBarState extends ConsumerState<RestTimerBar> {
         ],
       ),
     );
-  }
-}
-
-/// Light tap when the countdown reaches zero.
-///
-/// Web, desktop, and widget tests have no vibrator. A missing plugin is ignored.
-Future<void> playRestDoneHaptic() async {
-  try {
-    await HapticFeedback.lightImpact();
-  } on PlatformException {
-    return;
-  } on MissingPluginException {
-    return;
   }
 }

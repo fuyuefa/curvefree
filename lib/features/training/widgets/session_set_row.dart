@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:curvefree/app/theme/curve_colors.dart';
 import 'package:curvefree/core/constants/app_tokens.dart';
+import 'package:curvefree/core/haptics/app_haptics.dart';
 import 'package:curvefree/features/training/models/workout_models.dart';
 import 'package:curvefree/features/training/previous_sets.dart';
 import 'package:curvefree/features/training/widgets/numeric_keypad_sheet.dart';
@@ -91,6 +92,11 @@ class _SessionSetRowState extends State<SessionSetRow> {
   @override
   void didUpdateWidget(SessionSetRow oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (widget.interactive &&
+        widget.set.completed &&
+        !oldWidget.set.completed) {
+      unawaited(AppHaptics.setChecked());
+    }
     if (widget.focused && !oldWidget.focused) {
       _revealFocusedRow();
     }
@@ -132,30 +138,28 @@ class _SessionSetRowState extends State<SessionSetRow> {
     final CurveColors colors = CurveColors.of(context);
     final WorkoutSet set = widget.set;
     final bool done = set.completed;
-    final bool highlight = widget.focused && !done;
     final int index = widget.index;
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-      child: Container(
-        key: Key('set_row_$index'),
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.xs,
-          vertical: AppSpacing.xxs,
-        ),
-        decoration: BoxDecoration(
-          color: done ? colors.successSoft : colors.muted,
-          borderRadius: BorderRadius.circular(AppRadii.cta),
-          border: Border.all(
-            color: done
-                ? colors.success
-                : highlight
-                ? colors.primary
-                : colors.border,
-            width: highlight
-                ? AppLayout.focusBorderWidth
-                : AppLayout.borderWidth,
-          ),
-        ),
+      child: TweenAnimationBuilder<double>(
+        tween: Tween<double>(end: done ? 1 : 0),
+        duration: AppMotion.setCheckFade,
+        curve: Curves.easeOut,
+        builder: (BuildContext context, double completedT, Widget? child) {
+          return Container(
+            key: Key('set_row_$index'),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.xs,
+              vertical: AppSpacing.xxs,
+            ),
+            decoration: _setRowDecoration(
+              colors: colors,
+              completedT: completedT,
+              focused: widget.focused,
+            ),
+            child: child,
+          );
+        },
         child: Row(
           children: <Widget>[
             _IndexBadge(index: index + 1, completed: done),
@@ -234,6 +238,26 @@ class _SessionSetRowState extends State<SessionSetRow> {
       ),
     );
   }
+}
+
+BoxDecoration _setRowDecoration({
+  required CurveColors colors,
+  required double completedT,
+  required bool focused,
+}) {
+  final double t = completedT.clamp(0, 1).toDouble();
+  final Color idleBorder = focused ? colors.primary : colors.border;
+  final double idleWidth = focused
+      ? AppLayout.focusBorderWidth
+      : AppLayout.borderWidth;
+  return BoxDecoration(
+    color: Color.lerp(colors.muted, colors.successSoft, t),
+    borderRadius: BorderRadius.circular(AppRadii.cta),
+    border: Border.all(
+      color: Color.lerp(idleBorder, colors.success, t)!,
+      width: idleWidth + (AppLayout.borderWidth - idleWidth) * t,
+    ),
+  );
 }
 
 class _PreviousLoad extends StatelessWidget {

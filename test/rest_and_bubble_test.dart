@@ -6,12 +6,14 @@ import 'package:curvefree/core/storage/local_store_snapshot.dart';
 import 'package:curvefree/core/storage/prefs_local_store.dart';
 import 'package:curvefree/features/training/models/workout_models.dart';
 import 'package:curvefree/features/training/pages/session_page.dart';
+import 'package:curvefree/features/training/rest_end_flash.dart';
 import 'package:curvefree/features/training/rest_timer.dart';
 import 'package:curvefree/features/training/session_routes.dart';
 import 'package:curvefree/features/training/training_json_keys.dart';
 import 'package:curvefree/features/training/widgets/session_summary_bar.dart';
 import 'package:curvefree/features/training/workout_bubble.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -370,7 +372,7 @@ void main() {
     await tester.pump();
     expect(find.text('01:30'), findsOneWidget);
     expect(find.textContaining(_exerciseName), findsWidgets);
-    final Container bar = tester.widget<Container>(
+    final AnimatedContainer bar = tester.widget<AnimatedContainer>(
       find.byKey(const Key('rest_timer_bar')),
     );
     expect(
@@ -406,6 +408,22 @@ void main() {
   testWidgets(
     'skip, adjust, finish, and delete clear rest without a new session',
     (WidgetTester tester) async {
+      final List<MethodCall> haptic = <MethodCall>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (MethodCall call) async {
+          if (call.method == 'HapticFeedback.vibrate') {
+            haptic.add(call);
+          }
+          return null;
+        },
+      );
+      addTearDown(() {
+        tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          null,
+        );
+      });
       final PrefsLocalStore store = await _seed();
       await _pump(tester, store);
       await tester.tap(find.byKey(const Key('workout_float_bubble')));
@@ -428,6 +446,14 @@ void main() {
       await tester.tap(find.byKey(const Key('btn_rest_skip')));
       await _settle(tester);
       expect(find.byKey(const Key('rest_timer_bar')), findsNothing);
+      expect(
+        haptic.where(
+          (MethodCall call) =>
+              call.arguments == 'HapticFeedbackType.mediumImpact',
+        ),
+        isEmpty,
+      );
+      expect(haptic.single.arguments, 'HapticFeedbackType.lightImpact');
       expect(find.byKey(const Key('btn_finish_workout')), findsOneWidget);
       expect(_endedAt(await store.read()), isNull);
 
@@ -549,7 +575,7 @@ void main() {
     final Rect todayNav = tester.getRect(find.byKey(const Key('nav_today')));
     expect(bubble.overlaps(todayNav), isFalse);
 
-    final Container chip = tester.widget<Container>(
+    final AnimatedContainer chip = tester.widget<AnimatedContainer>(
       find.byKey(const Key('workout_float_bubble')),
     );
     expect(
@@ -576,7 +602,7 @@ void main() {
 
     await tester.tap(find.byKey(const Key('theme_dark')));
     await _settle(tester);
-    final Container darkChip = tester.widget<Container>(
+    final AnimatedContainer darkChip = tester.widget<AnimatedContainer>(
       find.byKey(const Key('workout_float_bubble')),
     );
     expect(
@@ -664,6 +690,97 @@ void main() {
     expect(find.byKey(const Key('home_today_title')), findsOneWidget);
     expect(find.byKey(const Key('workout_float_bubble')), findsOneWidget);
     expect((await store.read()).workouts, hasLength(1));
+  });
+
+  testWidgets('natural rest end flashes the bar and the float', (
+    WidgetTester tester,
+  ) async {
+    final List<MethodCall> haptic = <MethodCall>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (MethodCall call) async {
+        if (call.method == 'HapticFeedback.vibrate') {
+          haptic.add(call);
+        }
+        return null;
+      },
+    );
+    addTearDown(() {
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      );
+    });
+
+    final PrefsLocalStore store = await _seed();
+    await _pump(tester, store);
+    await tester.tap(find.byKey(const Key('workout_float_bubble')));
+    await _settle(tester);
+    await tester.tap(find.byKey(const Key('set_complete_0')));
+    await _settle(tester);
+
+    final _PinnedClock clock = _pinClock(tester);
+    final RestTimerState running = _rest(tester);
+    clock.moment = running.endsAt!;
+    expect(_controller(tester).noteNaturalEnd(clock.moment), isTrue);
+    await tester.pump();
+
+    final AnimatedContainer bar = tester.widget<AnimatedContainer>(
+      find.byKey(const Key('rest_timer_bar')),
+    );
+    expect(
+      (bar.decoration! as BoxDecoration).color,
+      restEndPeakFill(
+        idle: CurvePalette.light.primarySoft,
+        primarySoft: CurvePalette.light.primarySoft,
+        primary: CurvePalette.light.primary,
+      ),
+    );
+    expect(haptic.last.arguments, 'HapticFeedbackType.mediumImpact');
+
+    await tester.pump(AppMotion.restEndFlash);
+    expect(find.byKey(const Key('rest_timer_bar')), findsNothing);
+    expect(_rest(tester).endFlashUntil, isNull);
+
+    await tester.tap(find.byKey(const Key('set_complete_1')));
+    await _settle(tester);
+    final _PinnedClock again = _pinClock(tester);
+    final DateTime floatEnd = _rest(tester).endsAt!;
+    await tester.tap(find.byKey(const Key('btn_minimize_session')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 800));
+    expect(find.byKey(const Key('workout_float_bubble')), findsOneWidget);
+
+    again.moment = floatEnd;
+    final RestTimerController controller = ProviderScope.containerOf(
+      tester.element(find.byType(AppShell)),
+    ).read(restTimerProvider.notifier);
+    expect(controller.noteNaturalEnd(floatEnd), isTrue);
+    await tester.pump();
+    final AnimatedContainer chip = tester.widget<AnimatedContainer>(
+      find.byKey(const Key('workout_float_bubble')),
+    );
+    expect(
+      (chip.decoration! as BoxDecoration).color,
+      CurvePalette.light.primarySoft,
+    );
+    expect(
+      haptic.where(
+        (MethodCall call) =>
+            call.arguments == 'HapticFeedbackType.mediumImpact',
+      ),
+      hasLength(2),
+    );
+
+    await tester.pump(AppMotion.restEndFlash);
+    final AnimatedContainer settled = tester.widget<AnimatedContainer>(
+      find.byKey(const Key('workout_float_bubble')),
+    );
+    expect(
+      (settled.decoration! as BoxDecoration).color,
+      CurvePalette.light.elevated,
+    );
+    expect(_restFromShell(tester).endFlashUntil, isNull);
   });
 
   testWidgets('no bubble when every session is finished', (

@@ -96,11 +96,14 @@ class _SessionScaffoldState extends ConsumerState<_SessionScaffold> {
   Widget build(BuildContext context) {
     final RestTimerState rest = ref.watch(restTimerProvider);
     final DateTime now = ref.read(restTimerProvider.notifier).clock();
-    final bool showRest = rest.isRunningFor(session.id, now);
+    final bool showRest =
+        rest.isRunningFor(session.id, now) ||
+        rest.endFlashActiveFor(session.id, now);
     String? restExerciseName;
     if (showRest) {
+      final String? exerciseId = rest.exerciseId ?? rest.endFlashExerciseId;
       for (final WorkoutExercise exercise in session.exercises) {
-        if (exercise.id == rest.exerciseId) {
+        if (exercise.id == exerciseId) {
           restExerciseName = exercise.name;
           break;
         }
