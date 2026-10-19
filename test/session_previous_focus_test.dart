@@ -111,7 +111,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('rest countdown collapse plays a light haptic at zero', (
+  testWidgets('rest countdown collapse plays a medium haptic at zero', (
     WidgetTester tester,
   ) async {
     final List<MethodCall> haptic = <MethodCall>[];
@@ -153,8 +153,9 @@ void main() {
     moment = origin.add(Duration(seconds: rest.preferredSeconds));
     await tester.pump(RestTimerLimits.tick);
     await tester.pump();
-    expect(haptic, hasLength(1));
-    expect(haptic.single.arguments, 'HapticFeedbackType.lightImpact');
+    expect(haptic, hasLength(2));
+    expect(haptic.first.arguments, 'HapticFeedbackType.lightImpact');
+    expect(haptic.last.arguments, 'HapticFeedbackType.mediumImpact');
 
     await tester.pump(AppMotion.restCollapse);
     expect(find.byKey(const Key('rest_timer_bar')), findsNothing);

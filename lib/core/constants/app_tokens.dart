@@ -56,6 +56,16 @@ abstract final class AppMotion {
   /// Rest bar collapse, and how long a set-row waits before scrolling so the
   /// bar has finished opening.
   static const Duration restCollapse = Duration(milliseconds: 220);
+
+  /// Completed set row settles into the cream successSoft fill.
+  static const Duration setCheckFade = Duration(milliseconds: 150);
+
+  /// Rest-end flash on the float and the rest bar.
+  static const Duration restEndFlash = Duration(milliseconds: 150);
+
+  /// How far the rest bar, already painted primarySoft, leans toward primary
+  /// at the peak of [restEndFlash]. The float flashes primarySoft itself.
+  static const double restEndFlashLean = 0.35;
 }
 
 abstract final class AppFonts {
